@@ -3,7 +3,7 @@
     <groupId>com.twitter</groupId>
     <artifactId>parquet</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>1.2.5</version>
+    <version>1.2.5-cdh4.5.0-SNAPSHOT</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -36,7 +36,7 @@
     <dependency>
       <groupId>org.apache.pig</groupId>
       <artifactId>pig</artifactId>
-      <version>0.11.1</version>
+      <version>${cdh.pig.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
