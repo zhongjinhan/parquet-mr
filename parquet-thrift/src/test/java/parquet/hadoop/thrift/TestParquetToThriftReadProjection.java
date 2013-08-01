@@ -33,6 +33,8 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.mapreduce.TaskID;
 import org.apache.thrift.TBase;
+import org.apache.hadoop.mapreduce.task.JobContextImpl;
+import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
@@ -198,7 +200,7 @@ public class TestParquetToThriftReadProjection {
     //create a test file
     final TProtocolFactory protocolFactory = new TCompactProtocol.Factory();
     final TaskAttemptID taskId = new TaskAttemptID("local", 0, true, 0, 0);
-    final ThriftToParquetFileWriter w = new ThriftToParquetFileWriter(parquetFile, new TaskAttemptContext(conf, taskId), protocolFactory, thriftClass);
+    final ThriftToParquetFileWriter w = new ThriftToParquetFileWriter(parquetFile, new TaskAttemptContextImpl(conf, taskId), protocolFactory, thriftClass);
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
     final TProtocol protocol = protocolFactory.getProtocol(new TIOStreamTransport(baos));
 
@@ -212,10 +214,10 @@ public class TestParquetToThriftReadProjection {
     job.setInputFormatClass(ParquetThriftInputFormat.class);
     ParquetThriftInputFormat.setInputPaths(job, parquetFile);
     final JobID jobID = new JobID("local", 1);
-    List<InputSplit> splits = parquetThriftInputFormat.getSplits(new JobContext(ContextUtil.getConfiguration(job), jobID));
+    List<InputSplit> splits = parquetThriftInputFormat.getSplits(new JobContextImpl(ContextUtil.getConfiguration(job), jobID));
     T readValue = null;
     for (InputSplit split : splits) {
-      TaskAttemptContext taskAttemptContext = new TaskAttemptContext(ContextUtil.getConfiguration(job), new TaskAttemptID(new TaskID(jobID, true, 1), 0));
+      TaskAttemptContext taskAttemptContext = new TaskAttemptContextImpl(ContextUtil.getConfiguration(job), new TaskAttemptID(new TaskID(jobID, true, 1), 0));
       final RecordReader<Void, T> reader = parquetThriftInputFormat.createRecordReader(split, taskAttemptContext);
       reader.initialize(split, taskAttemptContext);
       if (reader.nextKeyValue()) {

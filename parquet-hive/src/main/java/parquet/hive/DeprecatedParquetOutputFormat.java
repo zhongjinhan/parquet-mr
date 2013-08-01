@@ -32,6 +32,7 @@ import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
+import org.apache.hadoop.mapreduce.task.JobContextImpl;
 import org.apache.hadoop.util.Progressable;
 
 import parquet.hadoop.ParquetOutputFormat;
@@ -65,7 +66,7 @@ public class DeprecatedParquetOutputFormat extends FileOutputFormat<Void, ArrayW
 
   @Override
   public void checkOutputSpecs(final FileSystem ignored, final JobConf job) throws IOException {
-    realOutputFormat.checkOutputSpecs(new JobContext(job, null));
+    realOutputFormat.checkOutputSpecs(new JobContextImpl(job, null));
   }
 
   @Override

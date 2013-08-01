@@ -33,6 +33,8 @@ import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.thrift.TBase;
+import org.apache.hadoop.mapreduce.task.JobContextImpl;
+import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -173,7 +175,7 @@ public class TestThriftToParquetFileWriter {
     }
     TProtocolFactory protocolFactory = new TCompactProtocol.Factory();
     TaskAttemptID taskId = new TaskAttemptID("local", 0, true, 0, 0);
-    ThriftToParquetFileWriter w = new ThriftToParquetFileWriter(fileToCreate, new TaskAttemptContext(conf, taskId), protocolFactory, (Class<? extends TBase<?, ?>>) tObj.getClass());
+    ThriftToParquetFileWriter w = new ThriftToParquetFileWriter(fileToCreate, new TaskAttemptContextImpl(conf, taskId), protocolFactory, (Class<? extends TBase<?, ?>>) tObj.getClass());
 
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
     final TProtocol protocol = protocolFactory.getProtocol(new TIOStreamTransport(baos));
