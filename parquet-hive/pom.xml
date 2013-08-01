@@ -3,7 +3,7 @@
     <groupId>com.twitter</groupId>
     <artifactId>parquet</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>1.2.5</version>
+    <version>1.2.5-cdh5.0.0-SNAPSHOT</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -35,7 +35,7 @@
   </repositories>
 
   <properties>
-    <hive.version>0.10.0</hive.version>
+    <hive.version>${cdh.hive.version}</hive.version>
   </properties>
 
   <dependencies>
