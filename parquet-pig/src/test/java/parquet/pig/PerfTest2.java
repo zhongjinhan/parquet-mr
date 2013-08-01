@@ -35,6 +35,8 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
+import org.apache.hadoop.mapreduce.task.JobContextImpl;
+import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
 import org.apache.pig.LoadFunc;
 import org.apache.pig.ResourceSchema;
 import org.apache.pig.StoreFuncInterface;
@@ -107,7 +109,7 @@ public class PerfTest2 {
       @SuppressWarnings("unchecked") // that's how the base class is defined
       OutputFormat<Void, Tuple> outputFormat = storer.getOutputFormat();
       // it's ContextUtil.getConfiguration(job) and not just conf !
-      JobContext jobContext = new JobContext(ContextUtil.getConfiguration(job), new JobID("jt", jobid ++));
+      JobContext jobContext = new JobContextImpl(ContextUtil.getConfiguration(job), new JobID("jt", jobid ++));
       outputFormat.checkOutputSpecs(jobContext);
       if (schema != null) {
         ResourceSchema resourceSchema = new ResourceSchema(Utils.getSchemaFromString(schema));
@@ -116,7 +118,7 @@ public class PerfTest2 {
           ((StoreMetadata)storer).storeSchema(resourceSchema, absPath, job);
         }
       }
-      TaskAttemptContext taskAttemptContext = new TaskAttemptContext(ContextUtil.getConfiguration(job), new TaskAttemptID("jt", jobid, true, 1, 0));
+      TaskAttemptContext taskAttemptContext = new TaskAttemptContextImpl(ContextUtil.getConfiguration(job), new TaskAttemptID("jt", jobid, true, 1, 0));
       RecordWriter<Void, Tuple> recordWriter = outputFormat.getRecordWriter(taskAttemptContext);
       storer.prepareToWrite(recordWriter);
 
@@ -161,12 +163,12 @@ public class PerfTest2 {
     loadFunc.setLocation(absPath, job);
     @SuppressWarnings("unchecked") // that's how the base class is defined
     InputFormat<Void, Tuple> inputFormat = loadFunc.getInputFormat();
-    JobContext jobContext = new JobContext(ContextUtil.getConfiguration(job), new JobID("jt", loadjobId));
+    JobContext jobContext = new JobContextImpl(ContextUtil.getConfiguration(job), new JobID("jt", loadjobId));
     List<InputSplit> splits = inputFormat.getSplits(jobContext);
     int i = 0;
     int taskid = 0;
     for (InputSplit split : splits) {
-      TaskAttemptContext taskAttemptContext = new TaskAttemptContext(ContextUtil.getConfiguration(job), new TaskAttemptID("jt", loadjobId, true, taskid++, 0));
+      TaskAttemptContext taskAttemptContext = new TaskAttemptContextImpl(ContextUtil.getConfiguration(job), new TaskAttemptID("jt", loadjobId, true, taskid++, 0));
       RecordReader<Void, Tuple> recordReader = inputFormat.createRecordReader(split, taskAttemptContext);
       loadFunc.prepareToRead(recordReader, null);
       recordReader.initialize(split, taskAttemptContext);
