@@ -71,6 +71,11 @@
       <artifactId>parquet-pig</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.hadoop.gplcompression</groupId>
+      <artifactId>hadoop-lzo</artifactId>
+      <version>cdh4-0.4.15-gplextras</version>
+    </dependency>
   </dependencies>
 
   <build>
