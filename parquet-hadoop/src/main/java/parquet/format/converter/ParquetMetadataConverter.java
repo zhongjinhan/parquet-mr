@@ -33,6 +33,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import parquet.Log;
+import parquet.format.ConvertedType;
 import parquet.format.ColumnChunk;
 import parquet.format.DataPageHeader;
 import parquet.format.DictionaryPageHeader;
@@ -53,6 +54,7 @@ import parquet.hadoop.metadata.ParquetMetadata;
 import parquet.io.ParquetDecodingException;
 import parquet.schema.GroupType;
 import parquet.schema.MessageType;
+import parquet.schema.OriginalType;
 import parquet.schema.PrimitiveType;
 import parquet.schema.PrimitiveType.PrimitiveTypeName;
 import parquet.schema.Type.Repetition;
@@ -100,6 +102,9 @@ public class ParquetMetadataConverter {
         if (primitiveType.getTypeLength() > 0) {
           element.setType_length(primitiveType.getTypeLength());
         }
+        if (primitiveType.getOriginalType() != null) {
+          element.setConverted_type(getConvertedType(primitiveType.getOriginalType()));
+        }
         result.add(element);
       }
 
@@ -113,6 +118,9 @@ public class ParquetMetadataConverter {
       public void visit(GroupType groupType) {
         SchemaElement element = new SchemaElement(groupType.getName());
         element.setRepetition_type(toParquetRepetition(groupType.getRepetition()));
+        if (groupType.getOriginalType() != null) {
+          element.setConverted_type(getConvertedType(groupType.getOriginalType()));
+        }
         visitChildren(result, groupType, element);
       }
 
@@ -254,9 +262,39 @@ public class ParquetMetadataConverter {
       case FIXED_LEN_BYTE_ARRAY:
         return Type.FIXED_LEN_BYTE_ARRAY;
       default:
-        throw new RuntimeException("Unknown type " + type);
+        throw new RuntimeException("Unknown primitive type " + type);
     }
   }
+
+  OriginalType getOriginalType(ConvertedType type) {
+    switch (type) {
+      case UTF8:
+        return OriginalType.UTF8;
+      case MAP:
+        return OriginalType.MAP;
+      case MAP_KEY_VALUE:
+        return OriginalType.MAP_KEY_VALUE;
+      case LIST:
+        return OriginalType.LIST;
+      default:
+        throw new RuntimeException("Unknown converted type " + type);
+    }
+  }
+
+  ConvertedType getConvertedType(OriginalType type) {
+    switch (type) {
+      case UTF8:
+        return ConvertedType.UTF8;
+      case MAP:
+        return ConvertedType.MAP;
+      case MAP_KEY_VALUE:
+        return ConvertedType.MAP_KEY_VALUE;
+      case LIST:
+        return ConvertedType.LIST;
+      default:
+        throw new RuntimeException("Unknown original type " + type);
+     }
+   }
 
   private void addKeyValue(FileMetaData fileMetaData, String key, String value) {
     KeyValue keyValue = new KeyValue(key);
@@ -340,23 +378,32 @@ public class ParquetMetadataConverter {
       }
       Repetition repetition = fromParquetRepetition(schemaElement.getRepetition_type());
       String name = schemaElement.getName();
+      OriginalType originalType = null;
+      if (schemaElement.isSetConverted_type()) {
+        originalType = getOriginalType(schemaElement.converted_type);
+      }
+
+      // Create Parquet Type.
       if (schemaElement.type != null) {
         if (schemaElement.isSetType_length()) {
           result[i] = new PrimitiveType(
               repetition,
               getPrimitive(schemaElement.getType()),
               schemaElement.type_length,
-              name);
+              name,
+              originalType);
         } else {
           result[i] = new PrimitiveType(
               repetition,
               getPrimitive(schemaElement.getType()),
-              name);
+              name,
+              originalType);
         }
       } else {
         result[i] = new GroupType(
             repetition,
             name,
+            originalType,
             convertChildren(schema, schemaElement.getNum_children()));
       }
     }
