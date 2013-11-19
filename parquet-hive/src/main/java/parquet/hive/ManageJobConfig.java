@@ -81,7 +81,7 @@ public class ManageJobConfig {
     if (mrwork == null && plan != null && plan.length() > 0) {
       mrwork = Utilities.getMapRedWork(job);
       pathToPartitionInfo = new LinkedHashMap<String, PartitionDesc>();
-      for (final Map.Entry<String, PartitionDesc> entry : mrwork.getPathToPartitionInfo().entrySet()) {
+      for (final Map.Entry<String, PartitionDesc> entry : mrwork.getMapWork().getPathToPartitionInfo().entrySet()) {
         pathToPartitionInfo.put(new Path(entry.getKey()).toUri().getPath().toString(), entry.getValue());
       }
     }
@@ -96,12 +96,12 @@ public class ManageJobConfig {
 
   private void pushProjectionsAndFilters(final JobConf jobConf, final String splitPath, final String splitPathWithNoSchema) {
 
-    if (mrwork == null || mrwork.getPathToAliases() == null) {
+    if (mrwork == null || mrwork.getMapWork().getPathToAliases() == null) {
       return;
     }
 
     final ArrayList<String> aliases = new ArrayList<String>();
-    final Iterator<Entry<String, ArrayList<String>>> iterator = this.mrwork.getPathToAliases().entrySet().iterator();
+    final Iterator<Entry<String, ArrayList<String>>> iterator = this.mrwork.getMapWork().getPathToAliases().entrySet().iterator();
 
     while (iterator.hasNext()) {
       final Entry<String, ArrayList<String>> entry = iterator.next();
@@ -116,7 +116,7 @@ public class ManageJobConfig {
     }
 
     for (final String alias : aliases) {
-      final Operator<? extends Serializable> op = this.mrwork.getAliasToWork().get(
+      final Operator<? extends Serializable> op = this.mrwork.getMapWork().getAliasToWork().get(
               alias);
       if (op != null && op instanceof TableScanOperator) {
         final TableScanOperator tableScan = (TableScanOperator) op;
