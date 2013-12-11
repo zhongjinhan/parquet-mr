@@ -17,8 +17,8 @@ package parquet.hive.serde.primitive;
 
 import org.apache.hadoop.hive.serde2.io.ByteWritable;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.AbstractPrimitiveJavaObjectInspector;
-import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorUtils;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.SettableByteObjectInspector;
+import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoFactory;
 import org.apache.hadoop.io.IntWritable;
 
 /**
@@ -29,7 +29,7 @@ import org.apache.hadoop.io.IntWritable;
 public class ParquetByteInspector extends AbstractPrimitiveJavaObjectInspector implements SettableByteObjectInspector {
 
   ParquetByteInspector() {
-    super(PrimitiveObjectInspectorUtils.byteTypeEntry);
+    super(TypeInfoFactory.byteTypeInfo);
   }
 
   @Override

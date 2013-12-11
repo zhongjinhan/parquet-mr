@@ -16,8 +16,8 @@
 package parquet.hive.serde.primitive;
 
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.AbstractPrimitiveJavaObjectInspector;
-import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorUtils;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.SettableStringObjectInspector;
+import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoFactory;
 import org.apache.hadoop.io.Text;
 import parquet.hive.writable.BinaryWritable;
 import parquet.io.api.Binary;
@@ -30,7 +30,7 @@ import parquet.io.api.Binary;
 public class ParquetStringInspector extends AbstractPrimitiveJavaObjectInspector implements SettableStringObjectInspector {
 
   ParquetStringInspector() {
-    super(PrimitiveObjectInspectorUtils.stringTypeEntry);
+    super(TypeInfoFactory.stringTypeInfo);
   }
 
   @Override

@@ -17,8 +17,8 @@ package parquet.hive.serde.primitive;
 
 import org.apache.hadoop.hive.serde2.io.ShortWritable;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.AbstractPrimitiveJavaObjectInspector;
-import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorUtils;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.SettableShortObjectInspector;
+import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoFactory;
 import org.apache.hadoop.io.IntWritable;
 
 /**
@@ -29,7 +29,7 @@ import org.apache.hadoop.io.IntWritable;
 public class ParquetShortInspector extends AbstractPrimitiveJavaObjectInspector implements SettableShortObjectInspector {
 
   ParquetShortInspector() {
-    super(PrimitiveObjectInspectorUtils.shortTypeEntry);
+    super(TypeInfoFactory.shortTypeInfo);
   }
 
   @Override

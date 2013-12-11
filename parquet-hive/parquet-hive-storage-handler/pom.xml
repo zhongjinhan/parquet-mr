@@ -21,16 +21,10 @@
   </repositories>
 
   <properties>
-    <hive.version>0.12.0</hive.version>
+    <hive.version>${cdh.hive.version}</hive.version>
   </properties>
 
   <dependencies>
-    <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-      <version>2.4</version>
-      <!-- <scope>test</scope> temporary for 0.12.0 -->
-    </dependency>
     <dependency>
       <groupId>com.twitter</groupId>
       <artifactId>parquet-hive-binding-bundle</artifactId>
@@ -95,6 +89,12 @@
       <groupId>com.twitter</groupId>
       <artifactId>parquet-hive-0.12-binding</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.4</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
