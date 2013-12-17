@@ -51,6 +51,7 @@ public class TestParquetStorer {
     Properties props = new Properties();
     props.setProperty("parquet.compression", "uncompressed");
     props.setProperty("parquet.page.size", "1000");
+    props.setProperty("mapreduce.framework.name", "local");
     PigServer pigServer = new PigServer(ExecType.LOCAL, props);
     Data data = Storage.resetData(pigServer);
     Collection<Tuple> list = new ArrayList<Tuple>();

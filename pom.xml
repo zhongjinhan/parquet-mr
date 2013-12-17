@@ -106,6 +106,7 @@
     <jackson.version>1.9.11</jackson.version>
     <parquet-format.version>${cdh.parquet-format.version}</parquet-format.version>
     <hadoop.version>${cdh.hadoop.version}</hadoop.version>
+    <pig.version>${cdh.pig.version}</pig.version>
   </properties>
 
   <modules>
