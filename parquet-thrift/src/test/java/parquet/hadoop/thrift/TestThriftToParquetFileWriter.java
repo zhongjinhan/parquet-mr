@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
 import parquet.thrift.test.TestListsInMap;
 
 import org.apache.hadoop.conf.Configuration;
