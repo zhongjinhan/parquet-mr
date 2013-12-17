@@ -105,7 +105,7 @@
     <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
     <jackson.version>1.9.11</jackson.version>
     <parquet-format.version>${cdh.parquet-format.version}</parquet-format.version>
-    <hadoop.version>${cdh.mr1.version}</hadoop.version>
+    <hadoop.version>${cdh.hadoop.version}</hadoop.version>
   </properties>
 
   <modules>
