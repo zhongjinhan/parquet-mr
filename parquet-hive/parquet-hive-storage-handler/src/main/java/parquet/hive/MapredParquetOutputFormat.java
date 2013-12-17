@@ -70,7 +70,7 @@ public class MapredParquetOutputFormat extends FileOutputFormat<Void, ArrayWrita
 
   @Override
   public void checkOutputSpecs(final FileSystem ignored, final JobConf job) throws IOException {
-    realOutputFormat.checkOutputSpecs(new Job(job, null));
+    realOutputFormat.checkOutputSpecs(ContextUtil.newJobContext(job, null));
   }
 
   @Override
