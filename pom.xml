@@ -108,6 +108,7 @@
     <hadoop.version>${cdh.hadoop.version}</hadoop.version>
     <thrift.version>${cdh.thrift.version}</thrift.version>
     <pig.version>${cdh.pig.version}</pig.version>
+    <commons-lang.version>2.5</commons-lang.version>
   </properties>
 
   <modules>
