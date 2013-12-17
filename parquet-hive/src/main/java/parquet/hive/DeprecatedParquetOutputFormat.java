@@ -66,7 +66,7 @@ public class DeprecatedParquetOutputFormat extends FileOutputFormat<Void, ArrayW
 
   @Override
   public void checkOutputSpecs(final FileSystem ignored, final JobConf job) throws IOException {
-    realOutputFormat.checkOutputSpecs(new JobContextImpl(job, null));
+    realOutputFormat.checkOutputSpecs(ContextUtil.newJobContext(job, null));
   }
 
   @Override
