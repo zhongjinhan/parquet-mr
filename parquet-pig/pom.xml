@@ -42,6 +42,12 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
       <version>${hadoop.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-mapreduce-client-common</artifactId>
+      <version>${not-mr1.hadoop.version}</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jackson</groupId>

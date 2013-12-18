@@ -106,6 +106,7 @@
     <jackson.version>1.9.11</jackson.version>
     <parquet-format.version>${cdh.parquet-format.version}</parquet-format.version>
     <hadoop.version>${cdh.hadoop.version}</hadoop.version>
+    <not-mr1.hadoop.version>${cdh.hadoop.version}</not-mr1.hadoop.version>
     <thrift.version>${cdh.thrift.version}</thrift.version>
     <pig.version>${cdh.pig.version}</pig.version>
     <commons-lang.version>2.5</commons-lang.version>
@@ -313,6 +314,12 @@
   </build>
 
   <profiles>
+    <profile>
+      <id>mr1</id>
+      <properties>
+        <hadoop.version>${cdh.mr1.version}</hadoop.version>
+      </properties>
+    </profile>
     <profile>
       <id>update-github-site</id>
       <reporting>
