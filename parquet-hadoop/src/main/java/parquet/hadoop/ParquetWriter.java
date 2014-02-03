@@ -38,7 +38,6 @@ public class ParquetWriter<T> implements Closeable {
   /**
    * Create a new ParquetWriter.
    * (with dictionary encoding enabled and validation off)
-   * @see ParquetWriter#ParquetWriter(Path, WriteSupport, CompressionCodecName, int, int, boolean)
    *
    * @param file the file to create
    * @param writeSupport the implementation to write a record to a RecordConsumer
@@ -46,6 +45,7 @@ public class ParquetWriter<T> implements Closeable {
    * @param blockSize the block size threshold
    * @param pageSize the page size threshold
    * @throws IOException
+   * @see #ParquetWriter(Path, WriteSupport, CompressionCodecName, int, int, boolean, boolean)
    */
   public ParquetWriter(Path file, WriteSupport<T> writeSupport, CompressionCodecName compressionCodecName, int blockSize, int pageSize) throws IOException {
     this(file, writeSupport, compressionCodecName, blockSize, pageSize, true, false);
@@ -62,6 +62,7 @@ public class ParquetWriter<T> implements Closeable {
    * @param enableDictionary to turn dictionary encoding on
    * @param validating to turn on validation using the schema
    * @throws IOException
+   * @see #ParquetWriter(Path, WriteSupport, CompressionCodecName, int, int, int, boolean, boolean)
    */
   public ParquetWriter(
       Path file,
@@ -86,6 +87,8 @@ public class ParquetWriter<T> implements Closeable {
    * @param enableDictionary to turn dictionary encoding on
    * @param validating to turn on validation using the schema
    * @throws IOException
+   * @see #ParquetWriter(Path, WriteSupport, CompressionCodecName, int, int, int,
+   * boolean, boolean, org.apache.hadoop.conf.Configuration)
    */
   public ParquetWriter(
       Path file,
@@ -96,7 +99,33 @@ public class ParquetWriter<T> implements Closeable {
       int dictionaryPageSize,
       boolean enableDictionary,
       boolean validating) throws IOException {
-    Configuration conf = new Configuration();
+    this(file, writeSupport, compressionCodecName, blockSize, pageSize, dictionaryPageSize, enableDictionary, validating, new Configuration());
+  }
+
+  /**
+   * Create a new ParquetWriter.
+   *
+   * @param file the file to create
+   * @param writeSupport the implementation to write a record to a RecordConsumer
+   * @param compressionCodecName the compression codec to use
+   * @param blockSize the block size threshold
+   * @param pageSize the page size threshold
+   * @param dictionaryPageSize the page size threshold for the dictionary pages
+   * @param enableDictionary to turn dictionary encoding on
+   * @param validating to turn on validation using the schema
+   * @param conf Hadoop configuration to use while accessing the filesystem
+   * @throws IOException
+   */
+  public ParquetWriter(
+      Path file,
+      WriteSupport<T> writeSupport,
+      CompressionCodecName compressionCodecName,
+      int blockSize,
+      int pageSize,
+      int dictionaryPageSize,
+      boolean enableDictionary,
+      boolean validating,
+      Configuration conf) throws IOException {
 
     WriteSupport.WriteContext writeContext = writeSupport.init(conf);
     MessageType schema = writeContext.getSchema();
