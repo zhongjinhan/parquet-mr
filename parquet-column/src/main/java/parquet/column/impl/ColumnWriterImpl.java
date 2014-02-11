@@ -30,7 +30,7 @@ import parquet.column.values.boundedint.DevNullValuesWriter;
 import parquet.column.values.dictionary.DictionaryValuesWriter.PlainBinaryDictionaryValuesWriter;
 import parquet.column.values.dictionary.DictionaryValuesWriter.PlainDoubleDictionaryValuesWriter;
 import parquet.column.values.dictionary.DictionaryValuesWriter.PlainFloatDictionaryValuesWriter;
-import parquet.column.values.dictionary.DictionaryValuesWriter.PlainInt96DictionaryValuesWriter;
+import parquet.column.values.dictionary.DictionaryValuesWriter.PlainFixedLenArrayDictionaryValuesWriter;
 import parquet.column.values.dictionary.DictionaryValuesWriter.PlainIntegerDictionaryValuesWriter;
 import parquet.column.values.dictionary.DictionaryValuesWriter.PlainLongDictionaryValuesWriter;
 import parquet.column.values.plain.BooleanPlainValuesWriter;
@@ -39,7 +39,6 @@ import parquet.column.values.plain.PlainValuesWriter;
 import parquet.column.values.rle.RunLengthBitPackingHybridValuesWriter;
 import parquet.io.ParquetEncodingException;
 import parquet.io.api.Binary;
-import parquet.io.api.Int96;
 
 /**
  * Writes (repetition level, definition level, value) triplets and deals with writing pages to the underlying layer.
@@ -98,7 +97,7 @@ final class ColumnWriterImpl implements ColumnWriter {
         this.dataColumn = new PlainFloatDictionaryValuesWriter(dictionaryPageSizeThreshold, initialSizePerCol);
         break;
       case INT96:
-        this.dataColumn = new PlainInt96DictionaryValuesWriter(dictionaryPageSizeThreshold, initialSizePerCol);
+        this.dataColumn = new PlainFixedLenArrayDictionaryValuesWriter(12, dictionaryPageSizeThreshold, initialSizePerCol);
         break;
       case FIXED_LEN_BYTE_ARRAY:
         this.dataColumn = new FixedLenByteArrayPlainValuesWriter(path.getTypeLength(), initialSizePerCol);
@@ -113,6 +112,9 @@ final class ColumnWriterImpl implements ColumnWriter {
         break;
       case FIXED_LEN_BYTE_ARRAY:
         this.dataColumn = new FixedLenByteArrayPlainValuesWriter(path.getTypeLength(), initialSizePerCol);
+        break;
+      case INT96:
+        this.dataColumn = new FixedLenByteArrayPlainValuesWriter(12, initialSizePerCol);
         break;
       default:
         this.dataColumn = new PlainValuesWriter(initialSizePerCol);
@@ -212,15 +214,6 @@ final class ColumnWriterImpl implements ColumnWriter {
     repetitionLevelColumn.writeInteger(repetitionLevel);
     definitionLevelColumn.writeInteger(definitionLevel);
     dataColumn.writeBytes(value);
-    accountForValueWritten();
-  }
-
-  @Override
-  public void write(Int96 value, int repetitionLevel, int definitionLevel) {
-    if (DEBUG) log(value, repetitionLevel, definitionLevel);
-    repetitionLevelColumn.writeInteger(repetitionLevel);
-    definitionLevelColumn.writeInteger(definitionLevel);
-    dataColumn.writeInt96(value);
     accountForValueWritten();
   }
 
