@@ -106,7 +106,7 @@ public class AvroSchemaConverter {
     } else if (type.equals(Schema.Type.RECORD)) {
       return new GroupType(repetition, fieldName, convertFields(schema.getFields()));
     } else if (type.equals(Schema.Type.ENUM)) {
-      return primitive(fieldName, BINARY, repetition, ENUM);
+      return primitive(fieldName, BINARY, repetition, UTF8); // not ENUM until Parquet 2
     } else if (type.equals(Schema.Type.ARRAY)) {
       return ConversionPatterns.listType(repetition, fieldName,
           convertField("array", schema.getElementType(), Type.Repetition.REPEATED));

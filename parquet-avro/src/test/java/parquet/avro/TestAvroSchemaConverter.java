@@ -39,7 +39,7 @@ public class TestAvroSchemaConverter {
       "  required group mynestedrecord {\n" +
       "    required int32 mynestedint;\n" +
       "  }\n" +
-      "  required binary myenum (ENUM);\n" +
+      "  required binary myenum (UTF8);\n" + // not ENUM until Parquet 2
       "  required group myarray (LIST) {\n" +
       "    repeated int32 array;\n" +
       "  }\n" +
@@ -114,7 +114,7 @@ public class TestAvroSchemaConverter {
             "  required group mynestedrecord {\n" +
             "    required int32 mynestedint;\n" +
             "  }\n" +
-            "  required binary myenum (ENUM);\n" +
+            "  required binary myenum (UTF8);\n" + // not ENUM until Parquet 2
             "  required group myarray (LIST) {\n" +
             "    repeated int32 array;\n" +
             "  }\n" +

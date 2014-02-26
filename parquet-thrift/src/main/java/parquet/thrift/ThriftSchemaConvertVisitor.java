@@ -178,7 +178,7 @@ public class ThriftSchemaConvertVisitor implements ThriftType.TypeVisitor {
   @Override
   public void visit(ThriftType.EnumType enumType) {
     if (isCurrentlyMatchedFilter()){
-      currentType = new PrimitiveType(currentRepetition, BINARY, currentName, ENUM);
+      currentType = new PrimitiveType(currentRepetition, BINARY, currentName, UTF8); // not ENUM until Parquet 2
     }
   }
 
