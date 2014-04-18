@@ -106,9 +106,9 @@ public class ParquetMetadataConverter {
         if (primitiveType.getOriginalType() != null) {
           element.setConverted_type(getConvertedType(primitiveType.getOriginalType()));
         }
-        if (primitiveType.getOriginalTypeMeta() != null) {
-          element.setPrecision(primitiveType.getOriginalTypeMeta().getPrecision());
-          element.setScale(primitiveType.getOriginalTypeMeta().getScale());
+        if (primitiveType.getDecimalMetadata() != null) {
+          element.setPrecision(primitiveType.getDecimalMetadata().getPrecision());
+          element.setScale(primitiveType.getDecimalMetadata().getScale());
         }
         result.add(element);
       }
