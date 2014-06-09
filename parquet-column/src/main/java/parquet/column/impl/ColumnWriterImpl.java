@@ -97,10 +97,10 @@ final class ColumnWriterImpl implements ColumnWriter {
         this.dataColumn = new PlainFloatDictionaryValuesWriter(dictionaryPageSizeThreshold, initialSizePerCol);
         break;
       case INT96:
-        this.dataColumn = new PlainFixedLenArrayDictionaryValuesWriter(12, dictionaryPageSizeThreshold, initialSizePerCol);
+        this.dataColumn = new PlainFixedLenArrayDictionaryValuesWriter(dictionaryPageSizeThreshold, initialSizePerCol, 12);
         break;
       case FIXED_LEN_BYTE_ARRAY:
-        this.dataColumn = new FixedLenByteArrayPlainValuesWriter(path.getTypeLength(), initialSizePerCol);
+        this.dataColumn = new PlainFixedLenArrayDictionaryValuesWriter(dictionaryPageSizeThreshold, initialSizePerCol, path.getTypeLength());
         break;
       default:
         this.dataColumn = new PlainValuesWriter(initialSizePerCol);
