@@ -19,6 +19,8 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
 
+import java.util.HashSet;
+import java.util.Set;
 import parquet.Log;
 import parquet.io.api.Binary;
 import parquet.io.api.RecordConsumer;
@@ -141,15 +143,15 @@ public class ValidatingRecordConsumer extends RecordConsumer {
         throw new InvalidRecordException("unknown repetition " + currentType.getRepetition() + " in " + currentType);
     }
     if (!currentType.isPrimitive() || currentType.asPrimitiveType().getPrimitiveTypeName() != p) {
-      throw new InvalidRecordException("expected type " + currentType + " but got "+ p);
+      throw new InvalidRecordException("expected type " + p + " but got "+ currentType);
     }
   }
 
-  private void validate(PrimitiveTypeName p1, PrimitiveTypeName p2) {
+  private void validate(PrimitiveTypeName... ptypes) {
     Type currentType = types.peek().asGroupType().getType(fields.peek());
     int c = fieldValueCount.pop() + 1;
     fieldValueCount.push(c);
-    if (DEBUG) LOG.debug("validate " + p1 + ", " + p2 + " for " + currentType.getName());
+    if (DEBUG) LOG.debug("validate " + Arrays.toString(ptypes) + " for " + currentType.getName());
     switch (currentType.getRepetition()) {
       case OPTIONAL:
       case REQUIRED:
@@ -162,12 +164,17 @@ public class ValidatingRecordConsumer extends RecordConsumer {
       default:
         throw new InvalidRecordException("unknown repetition " + currentType.getRepetition() + " in " + currentType);
     }
-    if (!currentType.isPrimitive() ||
-        (currentType.asPrimitiveType().getPrimitiveTypeName() != p1 &&
-         currentType.asPrimitiveType().getPrimitiveTypeName() != p2)) {
+    if (!currentType.isPrimitive()) {
       throw new InvalidRecordException(
-          "expected type " + currentType + " but got " + p1 + " or " + p2);
+          "expected type in " + Arrays.toString(ptypes) + " but got " + currentType);
     }
+    for (PrimitiveTypeName p : ptypes) {
+      if (currentType.asPrimitiveType().getPrimitiveTypeName() == p) {
+        return; // type is valid
+      }
+    }
+    throw new InvalidRecordException(
+        "expected type in " + Arrays.toString(ptypes) + " but got " + currentType);
   }
 
   /**
@@ -198,8 +205,7 @@ public class ValidatingRecordConsumer extends RecordConsumer {
    * {@inheritDoc}
    */
   public void addBinary(Binary value) {
-    // TODO: this is used for FIXED also
-    validate(PrimitiveTypeName.BINARY, PrimitiveTypeName.INT96);
+    validate(PrimitiveTypeName.BINARY, PrimitiveTypeName.INT96, PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY);
     delegate.addBinary(value);
   }
 
