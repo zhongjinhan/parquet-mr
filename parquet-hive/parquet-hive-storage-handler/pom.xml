@@ -39,7 +39,7 @@
   </repositories>
 
   <properties>
-    <hive.version>0.12.0</hive.version>
+    <hive.version>${cdh.hive.version}</hive.version>
   </properties>
 
   <dependencies>

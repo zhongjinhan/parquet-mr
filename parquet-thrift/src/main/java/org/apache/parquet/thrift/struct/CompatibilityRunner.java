@@ -99,7 +99,7 @@ public class CompatibilityRunner {
     ObjectMapper mapper = new ObjectMapper();
 
     String fileName = catName + ".json";
-    mapper.writerWithDefaultPrettyPrinter().writeValue(new File(storeDir, fileName), structType);
+    mapper.writer().withDefaultPrettyPrinter().writeValue(new File(storeDir, fileName), structType);
   }
 
 

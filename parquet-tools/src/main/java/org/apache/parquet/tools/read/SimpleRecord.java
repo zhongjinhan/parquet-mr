@@ -66,7 +66,7 @@ public class SimpleRecord {
         out.print("<null>");
       } else if (byte[].class == val.getClass()) {
         out.print(" = ");
-        out.print(new BinaryNode((byte[]) val).asText());
+        out.print(new BinaryNode((byte[]) val).getValueAsText());
       } else if (short[].class == val.getClass()) {
         out.print(" = ");
         out.print(Arrays.toString((short[])val));

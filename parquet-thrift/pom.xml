@@ -100,7 +100,7 @@
     <dependency>
       <groupId>joda-time</groupId>
       <artifactId>joda-time</artifactId>
-      <version>1.6</version>
+      <version>${cdh.joda-time.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency> <!-- for pig runtime in tests -->

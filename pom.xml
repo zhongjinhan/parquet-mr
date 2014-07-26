@@ -102,37 +102,39 @@
   </repositories>
 
   <properties>
-    <targetJavaVersion>1.7</targetJavaVersion>
-    <maven.compiler.source>1.7</maven.compiler.source>
-    <maven.compiler.target>${targetJavaVersion}</maven.compiler.target>
+    <javaVersion>1.8</javaVersion>
+    <maven.compiler.source>${javaVersion}</maven.compiler.source>
+    <maven.compiler.target>${javaVersion}</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <github.global.server>github</github.global.server>
     <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
     <maven-thrift-plugin.version>0.1.11</maven-thrift-plugin.version>
     <jackson.groupId>org.codehaus.jackson</jackson.groupId>
-    <jackson.version>1.9.11</jackson.version>
+    <jackson.version>${cdh.jackson.version}</jackson.version>
     <jackson.package>org.codehaus.jackson</jackson.package>
     <shade.prefix>shaded.parquet</shade.prefix>
-    <hadoop.version>2.3.0</hadoop.version>
+    <hadoop.version>${cdh.hadoop.version}</hadoop.version>
     <hadoop1.version>1.1.0</hadoop1.version>
     <cascading.version>2.5.3</cascading.version>
     <cascading3.version>3.0.3</cascading3.version>
-    <parquet.format.version>2.3.1</parquet.format.version>
-    <previous.version>1.7.0</previous.version>
+    <parquet.format.version>${cdh.apache-parquet-format.version}</parquet.format.version>
+    <previous.version>1.9.0-cdh6.0</previous.version>
     <thrift.executable>thrift</thrift.executable>
     <scala.version>2.10.4</scala.version>
     <!-- scala.binary.version is used for projects that fetch dependencies that are in scala -->
     <scala.binary.version>2.10</scala.binary.version>
     <scala.maven.test.skip>false</scala.maven.test.skip>
-    <pig.version>0.14.0</pig.version>
-    <pig.classifier>h2</pig.classifier>
-    <thrift.version>0.7.0</thrift.version>
-    <fastutil.version>6.5.7</fastutil.version>
+    <pig.version>${cdh.pig.version}</pig.version>
+    <pig.classifier></pig.classifier>
+    <protobuf.version>${cdh.protobuf.version}</protobuf.version>
+    <protoc.executable>protoc</protoc.executable>
+    <thrift.version>${cdh.thrift.version}</thrift.version>
+    <fastutil.version>${cdh.fastutil.version}</fastutil.version>
     <semver.api.version>0.9.33</semver.api.version>
-    <slf4j.version>1.7.5</slf4j.version>
-    <avro.version>1.8.0</avro.version>
-    <guava.version>11.0</guava.version>
-    <mockito.version>1.9.5</mockito.version>
+    <slf4j.version>${cdh.slf4j.version}</slf4j.version>
+    <avro.version>${cdh.avro.version}</avro.version>
+    <guava.version>${cdh.guava.version}</guava.version>
+    <mockito.version>1.10.19</mockito.version>
   </properties>
 
   <modules>
@@ -176,6 +178,13 @@
       <artifactId>commons-httpclient</artifactId>
       <version>3.0.1</version>
       <scope>test</scope>
+    </dependency>
+    <!-- License!!! See 4c0bae24 -->
+    <dependency>
+      <groupId>com.google.re2j</groupId>
+      <artifactId>re2j</artifactId>
+      <version>1.0</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
 
@@ -230,6 +239,14 @@
     <pluginManagement>
       <plugins>
         <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>2.10.4</version>
+          <configuration>
+            <additionalparam combine.children="append">-Xdoclint:none</additionalparam>
+          </configuration>
+        </plugin>
+        <plugin>
           <!-- Disable the source artifact from ASF parent -->
           <artifactId>maven-assembly-plugin</artifactId>
           <executions>
@@ -256,6 +273,9 @@
               <version>0.9.28</version>
             </dependency>
          </dependencies>
+         <!-- Disable API compatibilty checks until the first C6 version gets
+              released, since that will serve as the reference point. -->
+         <?ignore
          <executions>
            <execution>
              <id>check</id>
@@ -291,11 +311,12 @@
              </configuration>
            </execution>
          </executions>
+         ?>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
-          <version>2.1</version>
+          <version>2.4.3</version>
           <executions>
             <execution>
               <phase>package</phase>
@@ -479,9 +500,10 @@
             <exclude>.travis.yml</exclude>
             <exclude>licenses/**</exclude>
             <exclude>protobuf_install/**</exclude>
-            <exclude>thrift-0.7.0/**</exclude>
-            <exclude>thrift-0.7.0.tar.gz</exclude>
+            <exclude>thrift-${cdh.thrift.version}/**</exclude>
+            <exclude>thrift-${cdh.thrift.version}.tar.gz</exclude>
             <exclude>**/dependency-reduced-pom.xml</exclude>
+            <exclude>cloudera/**</exclude>
           </excludes>
         </configuration>
       </plugin>
