@@ -133,8 +133,10 @@
     <module>parquet-thrift</module>
     <module>parquet-test-hadoop2</module>
     <module>parquet-hadoop-bundle</module>
+    <!-- see README.CLOUDERA
     <module>parquet-hive</module>
     <module>parquet-hive-bundle</module>
+    -->
     <module>parquet-tools</module>
   </modules>
 
