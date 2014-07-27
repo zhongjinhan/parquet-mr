@@ -211,7 +211,8 @@
               <artifactId>enforcer-rule</artifactId>
               <version>0.9.23</version>
             </dependency>
-         </dependencies>
+          </dependencies>
+          <!--
          <executions>
            <execution>
              <id>check</id>
@@ -231,7 +232,7 @@
                </rules>
              </configuration>
            </execution>
-         </executions>
+         </executions>-->
         </plugin>
         <plugin>
          <groupId>org.apache.maven.plugins</groupId>
