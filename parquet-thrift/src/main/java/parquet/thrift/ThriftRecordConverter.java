@@ -844,6 +844,11 @@ public class ThriftRecordConverter<T> extends RecordMaterializer<T> {
     }
   }
 
+  @Override
+  public void skipCurrentRecord() {
+    rootEvents.clear();
+  }
+
   /**
    *
    * {@inheritDoc}

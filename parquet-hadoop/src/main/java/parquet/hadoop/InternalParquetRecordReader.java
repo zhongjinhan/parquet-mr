@@ -18,12 +18,16 @@ package parquet.hadoop;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+
 import parquet.Log;
 import parquet.column.ColumnDescriptor;
 import parquet.column.page.PageReadStore;
 import parquet.filter.UnboundRecordFilter;
+import parquet.filter2.compat.FilterCompat;
+import parquet.filter2.compat.FilterCompat.Filter;
 import parquet.hadoop.api.ReadSupport;
 import parquet.hadoop.metadata.BlockMetaData;
 import parquet.hadoop.util.counters.BenchmarkCounter;
@@ -37,11 +41,13 @@ import parquet.schema.Type;
 
 import static java.lang.String.format;
 import static parquet.Log.DEBUG;
+import static parquet.Preconditions.checkNotNull;
 
 class InternalParquetRecordReader<T> {
   private static final Log LOG = Log.getLog(InternalParquetRecordReader.class);
 
   private final ColumnIOFactory columnIOFactory = new ColumnIOFactory();
+  private final Filter filter;
 
   private MessageType requestedSchema;
   private MessageType fileSchema;
@@ -56,7 +62,6 @@ class InternalParquetRecordReader<T> {
   private int currentBlock = -1;
   private ParquetFileReader reader;
   private parquet.io.RecordReader<T> recordReader;
-  private UnboundRecordFilter recordFilter;
 
   private long totalTimeSpentReadingBytes;
   private long totalTimeSpentProcessingRecords;
@@ -68,19 +73,28 @@ class InternalParquetRecordReader<T> {
 
   /**
    * @param readSupport Object which helps reads files of the given type, e.g. Thrift, Avro.
+   * @param filter for filtering individual records
+   */
+  public InternalParquetRecordReader(ReadSupport<T> readSupport, Filter filter) {
+    this.readSupport = readSupport;
+    this.filter = checkNotNull(filter, "filter");
+  }
+
+  /**
+   * @param readSupport Object which helps reads files of the given type, e.g. Thrift, Avro.
    */
   public InternalParquetRecordReader(ReadSupport<T> readSupport) {
-    this(readSupport, null);
+    this(readSupport, FilterCompat.NOOP);
   }
 
   /**
    * @param readSupport Object which helps reads files of the given type, e.g. Thrift, Avro.
    * @param filter Optional filter for only returning matching records.
+   * @deprecated use {@link #InternalParquetRecordReader(ReadSupport, Filter)}
    */
-  public InternalParquetRecordReader(ReadSupport<T> readSupport, UnboundRecordFilter
-      filter) {
-    this.readSupport = readSupport;
-    this.recordFilter = filter;
+  @Deprecated
+  public InternalParquetRecordReader(ReadSupport<T> readSupport, UnboundRecordFilter filter) {
+    this(readSupport, FilterCompat.get(filter));
   }
 
   private void checkRead() throws IOException {
@@ -107,7 +121,7 @@ class InternalParquetRecordReader<T> {
       LOG.info("block read in memory in " + timeSpentReading + " ms. row count = " + pages.getRowCount());
       if (Log.DEBUG) LOG.debug("initializing Record assembly with requested schema " + requestedSchema);
       MessageColumnIO columnIO = columnIOFactory.getColumnIO(requestedSchema, fileSchema);
-      recordReader = columnIO.getRecordReader(pages, recordConverter, recordFilter);
+      recordReader = columnIO.getRecordReader(pages, recordConverter, filter);
       startedAssemblingCurrentBlockAt = System.currentTimeMillis();
       totalCountLoadedSoFar += pages.getRowCount();
       ++ currentBlock;
@@ -167,27 +181,36 @@ class InternalParquetRecordReader<T> {
   }
 
   public boolean nextKeyValue() throws IOException, InterruptedException {
-    if (current < total) {
+    boolean recordFound = false;
+
+    while (!recordFound) {
+      // no more records left
+      if (current >= total) { return false; }
+
       try {
         checkRead();
         currentValue = recordReader.read();
         current ++;
-        while (currentValue == null) { // only happens with FilteredRecordReader at end of block
-          current = totalCountLoadedSoFar;
-          if (current < total) {
-            checkRead();
-            currentValue = recordReader.read();
-            current ++;
-            continue;
-          }
-          return false;
+        if (recordReader.shouldSkipCurrentRecord()) {
+          // this record is being filtered via the filter2 package
+          if (DEBUG) LOG.debug("skipping record");
+          continue;
         }
+
+        if (currentValue == null) {
+          // only happens with FilteredRecordReader at end of block
+          current = totalCountLoadedSoFar;
+          if (DEBUG) LOG.debug("filtered record reader reached end of block");
+          continue;
+        }
+
+        recordFound = true;
+
         if (DEBUG) LOG.debug("read value: " + currentValue);
       } catch (RuntimeException e) {
         throw new ParquetDecodingException(format("Can not read value at %d in block %d in file %s", current, currentBlock, file), e);
       }
-      return true;
     }
-    return false;
+    return true;
   }
 }

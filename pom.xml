@@ -121,6 +121,7 @@
     <protobuf.version>${cdh.protobuf.version}</protobuf.version>
     <avro.version>${cdh.avro.version}</avro.version>
     <scala.maven.test.skip>false</scala.maven.test.skip>
+    <scala.version>2.9.2</scala.version>
   </properties>
 
   <modules>
@@ -135,6 +136,7 @@
     <module>parquet-pig</module>
     <module>parquet-pig-bundle</module>
     <module>parquet-protobuf</module>
+    <module>parquet-scala</module>
     <module>parquet-scrooge</module>
     <module>parquet-thrift</module>
     <module>parquet-test-hadoop2</module>
@@ -151,6 +153,12 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.10</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+      <version>3.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -236,6 +244,8 @@
                    <previousVersion>${previous.version}</previousVersion>
                    <excludes>
                      <exclude>parquet/org/**</exclude>
+                     <! one time exclusions that should be removed >
+                     <exclude>parquet/io/api/Binary</exclude>
                    </excludes>
                  </requireBackwardCompatibility>
                </rules>
