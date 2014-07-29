@@ -116,6 +116,7 @@
     <pig.version>${cdh.pig.version}</pig.version>
     <thrift.version>${cdh.thrift.version}</thrift.version>
     <protobuf.version>${cdh.protobuf.version}</protobuf.version>
+    <avro.version>${cdh.avro.version}</avro.version>
   </properties>
 
   <modules>
