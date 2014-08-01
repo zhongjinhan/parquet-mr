@@ -111,7 +111,7 @@
     <cascading.version>2.5.3</cascading.version>
     <parquet.format.version>${cdh.parquet-format.version}</parquet.format.version>
     <log4j.version>1.2.17</log4j.version>
-    <previous.version>1.4.0</previous.version>
+    <previous.version>1.2.5-cdh5.2.0-SNAPSHOT</previous.version>
     <thrift.executable>thrift</thrift.executable>
     <pig.version>${cdh.pig.version}</pig.version>
     <thrift.version>${cdh.thrift.version}</thrift.version>
@@ -131,7 +131,9 @@
     <module>parquet-pig</module>
     <module>parquet-pig-bundle</module>
     <module>parquet-protobuf</module>
+    <!--
     <module>parquet-scrooge</module>
+    -->
     <module>parquet-thrift</module>
     <module>parquet-test-hadoop2</module>
     <module>parquet-hadoop-bundle</module>
@@ -363,6 +365,49 @@
             </goals>
          </execution>
        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.7</version>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <id>generate-jdiff-xml</id>
+            <phase>site</phase>
+            <goals>
+              <goal>aggregate</goal>
+            </goals>
+            <configuration>
+              <doclet>jdiff.JDiff</doclet>
+              <docletPath>${project.basedir}/lib/jdiff.jar</docletPath>
+              <additionalparam>
+                -XDignore.symbol.file -apiname 'Parquet-MR ${project.version}'
+              </additionalparam>
+              <useStandardDocletOptions>false</useStandardDocletOptions>
+              <reportOutputDirectory>${project.reporting.outputDirectory}</reportOutputDirectory>
+              <destDir>jdiff</destDir>
+              <excludePackageNames>parquet.jackson.*:org.apache.*</excludePackageNames>
+            </configuration>
+          </execution>
+          <execution>
+            <id>generate-jdiff-site-report</id>
+            <phase>site</phase>
+            <goals>
+              <goal>aggregate</goal>
+            </goals>
+            <configuration>
+              <doclet>jdiff.JDiff</doclet>
+              <docletPath>${project.basedir}/lib/jdiff.jar:${project.basedir}/lib/xerces.jar</docletPath>
+              <additionalparam>
+                -XDignore.symbol.file -oldapi 'Parquet-MR ${previous.version}' -newapi 'Parquet-MR ${project.version}' -oldapidir '${project.basedir}/src/jdiff' -newapidir '${project.reporting.outputDirectory}/jdiff' -javadocnew ../../apidocs/ -d ${project.reporting.outputDirectory}/jdiff
+              </additionalparam>
+              <useStandardDocletOptions>false</useStandardDocletOptions>
+              <reportOutputDirectory>${project.reporting.outputDirectory}</reportOutputDirectory>
+              <destDir>jdiff</destDir>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
