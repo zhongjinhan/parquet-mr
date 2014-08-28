@@ -103,7 +103,7 @@ abstract public class Binary {
     return new Binary() {
       @Override
       public String toStringUsingUTF8() {
-        return new String(value, BytesUtils.UTF8);
+        return UTF8.decode(ByteBuffer.wrap(value)).toString();
       }
 
       @Override
@@ -162,7 +162,7 @@ abstract public class Binary {
     return new Binary() {
       @Override
       public String toStringUsingUTF8() {
-        return new String(getBytes(), BytesUtils.UTF8);
+        return UTF8.decode(value).toString();
       }
 
       @Override
