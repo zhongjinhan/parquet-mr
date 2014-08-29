@@ -78,6 +78,10 @@ public class ThriftBytesWriteSupport extends WriteSupport<BytesWritable> {
     this.errorHandler = null;
   }
 
+  public ThriftBytesWriteSupport(TProtocolFactory protocolFactory, Class<TBase<?, ?>> thriftClass, boolean buffered) {
+    this(protocolFactory, thriftClass, buffered, null);
+  }
+
   public ThriftBytesWriteSupport(TProtocolFactory protocolFactory, Class<? extends TBase<?, ?>> thriftClass, boolean buffered, FieldIgnoredHandler errorHandler) {
     super();
     this.protocolFactory = protocolFactory;

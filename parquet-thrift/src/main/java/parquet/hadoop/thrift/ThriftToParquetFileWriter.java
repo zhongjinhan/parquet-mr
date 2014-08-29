@@ -39,6 +39,24 @@ public class ThriftToParquetFileWriter implements Closeable {
   private final TaskAttemptContext taskAttemptContext;
 
   /**
+   * @param fileToCreate the file to create. If null will create the default file name from the taskAttemptContext
+   * @param taskAttemptContext The current taskAttemptContext
+   * @param protocolFactory to create protocols to read the incoming bytes
+   * @param thriftClass to produce the schema
+   * @param buffered buffer each record individually
+   * @throws IOException if there was a problem writing
+   * @throws InterruptedException from the underlying Hadoop API
+   */
+  public ThriftToParquetFileWriter(
+      Path fileToCreate,
+      TaskAttemptContext taskAttemptContext,
+      TProtocolFactory protocolFactory,
+      Class<? extends TBase<?,?>> thriftClass,
+      boolean buffered) throws IOException, InterruptedException {
+    this(fileToCreate, taskAttemptContext, protocolFactory, thriftClass, buffered, null);
+  }
+
+  /**
    * defaults to buffered = true
    * @param fileToCreate the file to create. If null will create the default file name from the taskAttemptContext
    * @param taskAttemptContext The current taskAttemptContext
