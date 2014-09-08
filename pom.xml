@@ -121,7 +121,9 @@
     <protobuf.version>${cdh.protobuf.version}</protobuf.version>
     <avro.version>${cdh.avro.version}</avro.version>
     <scala.maven.test.skip>false</scala.maven.test.skip>
-    <scala.version>2.9.2</scala.version>
+    <scala.version>2.10.4</scala.version>
+    <!-- scala.binary.version is used for projects that fetch dependencies that are in scala -->
+    <scala.binary.version>2.10</scala.binary.version>
   </properties>
 
   <modules>
