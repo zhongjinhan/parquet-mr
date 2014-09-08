@@ -414,6 +414,12 @@
 
   <profiles>
     <profile>
+      <id>mr1</id>
+      <properties>
+        <hadoop.version>${cdh.mr1.version}</hadoop.version>
+      </properties>
+    </profile>
+    <profile>
       <id>update-github-site</id>
       <reporting>
         <plugins>
