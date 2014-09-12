@@ -130,7 +130,7 @@
               <tasks>
                 <mkdir dir="${project.build.directory}/generated-test-sources" />
                 <mkdir dir="${project.build.directory}/generated-test-sources/java" />
-                <exec failonerror="true" executable="protoc">
+                <exec failonerror="true" executable="${protoc.executable}">
                   <arg value="--java_out=${project.build.directory}/generated-test-sources/java" />
                   <arg value="src/test/resources/TestProtobuf.proto" />
                   <arg value="-I." />

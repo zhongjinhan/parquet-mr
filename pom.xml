@@ -113,6 +113,7 @@
     <log4j.version>1.2.17</log4j.version>
     <previous.version>1.2.5-cdh5.2.0-SNAPSHOT</previous.version>
     <thrift.executable>thrift</thrift.executable>
+    <protoc.executable>protoc</protoc.executable>
     <pig.version>${cdh.pig.version}</pig.version>
     <thrift.version>${cdh.thrift.version}</thrift.version>
     <protobuf.version>${cdh.protobuf.version}</protobuf.version>
