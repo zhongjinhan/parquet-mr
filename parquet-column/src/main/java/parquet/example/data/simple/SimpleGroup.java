@@ -72,7 +72,7 @@ public class SimpleGroup extends Group {
   @Override
   public Group addGroup(int fieldIndex) {
     SimpleGroup g = new SimpleGroup(schema.getType(fieldIndex).asGroupType());
-    data[fieldIndex].add(g);
+    add(fieldIndex, g);
     return g;
   }
 
@@ -124,6 +124,21 @@ public class SimpleGroup extends Group {
   @Override
   public int getInteger(int fieldIndex, int index) {
     return ((IntegerValue)getValue(fieldIndex, index)).getInteger();
+  }
+
+  @Override
+  public long getLong(int fieldIndex, int index) {
+    return ((LongValue)getValue(fieldIndex, index)).getLong();
+  }
+
+  @Override
+  public double getDouble(int fieldIndex, int index) {
+    return ((DoubleValue)getValue(fieldIndex, index)).getDouble();
+  }
+
+  @Override
+  public float getFloat(int fieldIndex, int index) {
+    return ((FloatValue)getValue(fieldIndex, index)).getFloat();
   }
 
   @Override
@@ -194,6 +209,11 @@ public class SimpleGroup extends Group {
   @Override
   public void add(int fieldIndex, double value) {
     add(fieldIndex, new DoubleValue(value));
+  }
+
+  @Override
+  public void add(int fieldIndex, Group value) {
+    data[fieldIndex].add(value);
   }
 
   @Override
