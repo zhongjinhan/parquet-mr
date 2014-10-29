@@ -106,7 +106,7 @@
     <github.global.server>github</github.global.server>
     <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
     <jackson.groupId>org.codehaus.jackson</jackson.groupId>
-    <jackson.version>1.9.11</jackson.version>
+    <jackson.version>${cdh.jackson.version}</jackson.version>
     <jackson.package>org.codehaus.jackson</jackson.package>
     <shade.prefix>parquet</shade.prefix>
     <hadoop.version>${cdh.hadoop.version}</hadoop.version>
