@@ -141,7 +141,7 @@ public class ParquetInputSplit extends FileSplit implements Writable {
   /**
    * @return the requested schema
    */
-  String getRequestedSchema() {
+  public String getRequestedSchema() {
     return requestedSchema;
   }
 
@@ -157,7 +157,7 @@ public class ParquetInputSplit extends FileSplit implements Writable {
   /**
    * @return the end offset of that split
    */
-  long getEnd() {
+  public long getEnd() {
     return end;
   }
 
@@ -173,14 +173,14 @@ public class ParquetInputSplit extends FileSplit implements Writable {
   /**
    * @return app specific metadata provided by the read support in the init phase
    */
-  Map<String, String> getReadSupportMetadata() {
+  public Map<String, String> getReadSupportMetadata() {
     return readSupportMetadata;
   }
 
   /**
    * @return the offsets of the row group selected if this has been determined on the client side
    */
-  long[] getRowGroupOffsets() {
+  public long[] getRowGroupOffsets() {
     return rowGroupOffsets;
   }
 
@@ -210,7 +210,7 @@ public class ParquetInputSplit extends FileSplit implements Writable {
    * {@inheritDoc}
    */
   @Override
-  final public void readFields(DataInput hin) throws IOException {
+  public void readFields(DataInput hin) throws IOException {
     byte[] bytes = readArray(hin);
     DataInputStream in = new DataInputStream(new GZIPInputStream(new ByteArrayInputStream(bytes)));
     super.readFields(in);
@@ -230,7 +230,7 @@ public class ParquetInputSplit extends FileSplit implements Writable {
    * {@inheritDoc}
    */
   @Override
-  final public void write(DataOutput hout) throws IOException {
+  public void write(DataOutput hout) throws IOException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     DataOutputStream out = new DataOutputStream(new GZIPOutputStream(baos));
     super.write(out);
