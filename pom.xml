@@ -249,6 +249,7 @@
                      <! one time exclusions that should be removed >
                      <exclude>parquet/io/api/Binary</exclude>
                      <exclude>parquet/column/values/**</exclude>
+                     <exclude>parquet/column/**</exclude>
                      <exclude>parquet/hadoop/ParquetInputSplit</exclude>
                    </excludes>
                  </requireBackwardCompatibility>
