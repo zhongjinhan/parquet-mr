@@ -115,7 +115,9 @@ class InternalParquetRecordReader<T> {
   }
 
   public void close() throws IOException {
-    reader.close();
+    if (reader != null) {
+      reader.close();
+    }
   }
 
   public Void getCurrentKey() throws IOException, InterruptedException {
