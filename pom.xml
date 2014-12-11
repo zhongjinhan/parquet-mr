@@ -4,13 +4,13 @@
   <parent>
     <groupId>com.cloudera.cdh</groupId>
     <artifactId>cdh-root</artifactId>
-    <version>5.3.0-SNAPSHOT</version>
+    <version>5.3.0</version>
     <relativePath></relativePath><!-- no parent resolution -->
   </parent>
 
   <groupId>com.twitter</groupId>
   <artifactId>parquet</artifactId>
-  <version>1.5.0-cdh5.3.0-SNAPSHOT</version>
+  <version>1.5.0-cdh5.3.0</version>
   <packaging>pom</packaging>
 
   <name>Parquet MR</name>
@@ -113,7 +113,7 @@
     <cascading.version>2.5.3</cascading.version>
     <parquet.format.version>${cdh.parquet-format.version}</parquet.format.version>
     <log4j.version>1.2.17</log4j.version>
-    <previous.version>1.2.5-cdh5.3.0-SNAPSHOT</previous.version>
+    <previous.version>1.2.5-cdh5.3.0</previous.version>
     <thrift.executable>thrift</thrift.executable>
     <protoc.executable>protoc</protoc.executable>
     <pig.version>${cdh.pig.version}</pig.version>
