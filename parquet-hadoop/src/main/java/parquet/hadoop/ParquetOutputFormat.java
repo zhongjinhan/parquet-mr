@@ -103,6 +103,7 @@ public class ParquetOutputFormat<T> extends FileOutputFormat<Void, T> {
   public static final String VALIDATION           = "parquet.validation";
   public static final String WRITER_VERSION       = "parquet.writer.version";
   public static final String ENABLE_JOB_SUMMARY   = "parquet.enable.summary-metadata";
+  public static final String MEMORY_POOL_RATIO    = "parquet.memory.pool.ratio";
 
   public static void setWriteSupportClass(Job job,  Class<?> writeSupportClass) {
     getConfiguration(job).set(WRITE_SUPPORT_CLASS, writeSupportClass.getName());
@@ -177,8 +178,13 @@ public class ParquetOutputFormat<T> extends FileOutputFormat<Void, T> {
     return configuration.getBoolean(ENABLE_DICTIONARY, true);
   }
 
+  @Deprecated
   public static int getBlockSize(Configuration configuration) {
     return configuration.getInt(BLOCK_SIZE, DEFAULT_BLOCK_SIZE);
+  }
+
+  public static long getLongBlockSize(Configuration configuration) {
+    return configuration.getLong(BLOCK_SIZE, DEFAULT_BLOCK_SIZE);
   }
 
   public static int getPageSize(Configuration configuration) {
@@ -261,7 +267,7 @@ public class ParquetOutputFormat<T> extends FileOutputFormat<Void, T> {
     final WriteSupport<T> writeSupport = getWriteSupport(conf);
 
     CodecFactory codecFactory = new CodecFactory(conf);
-    int blockSize = getBlockSize(conf);
+    long blockSize = getLongBlockSize(conf);
     if (INFO) LOG.info("Parquet block size to " + blockSize);
     int pageSize = getPageSize(conf);
     if (INFO) LOG.info("Parquet page size to " + pageSize);
@@ -277,7 +283,16 @@ public class ParquetOutputFormat<T> extends FileOutputFormat<Void, T> {
     WriteContext init = writeSupport.init(conf);
     ParquetFileWriter w = new ParquetFileWriter(conf, init.getSchema(), file);
     w.start();
-    
+
+    float maxLoad = conf.getFloat(ParquetOutputFormat.MEMORY_POOL_RATIO,
+        MemoryManager.DEFAULT_MEMORY_POOL_RATIO);
+    if (memoryManager == null) {
+      memoryManager = new MemoryManager(maxLoad);
+    } else if (memoryManager.getMemoryPoolRatio() != maxLoad) {
+      LOG.warn("The configuration " + MEMORY_POOL_RATIO + " has been set. It should not " +
+          "be reset by the new value: " + maxLoad);
+    }
+
     return new ParquetRecordWriter<T>(
         w,
         writeSupport,
@@ -288,7 +303,8 @@ public class ParquetOutputFormat<T> extends FileOutputFormat<Void, T> {
         dictionaryPageSize,
         enableDictionary,
         validating,
-        writerVersion);
+        writerVersion,
+        memoryManager);
   }
 
   /**
@@ -317,5 +333,15 @@ public class ParquetOutputFormat<T> extends FileOutputFormat<Void, T> {
       committer = new ParquetOutputCommitter(output, context);
     }
     return committer;
+  }
+
+
+  /**
+   * This memory manager is for all the real writers (InternalParquetRecordWriter) in one task.
+   */
+  private static MemoryManager memoryManager;
+
+  static MemoryManager getMemoryManager() {
+    return memoryManager;
   }
 }

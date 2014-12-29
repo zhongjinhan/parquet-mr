@@ -363,6 +363,18 @@ public class TestInputFormat {
     assertFalse(cacheValue.isNewerThan(newerCacheValue));
   }
 
+  @Test
+  public void testDeprecatedConstructorOfParquetInputSplit() throws Exception {
+    withHDFSBlockSize(50, 50);
+    List<ParquetInputSplit> splits = generateSplitByDeprecatedConstructor(50, 50);
+
+    shouldSplitBlockSizeBe(splits, 5, 5);
+    shouldOneSplitRowGroupOffsetBe(splits.get(0), 0, 10, 20, 30, 40);
+    shouldOneSplitRowGroupOffsetBe(splits.get(1), 50, 60, 70, 80, 90);
+    shouldSplitLengthBe(splits, 50, 50);
+    shouldSplitStartBe(splits, 0, 50);
+  }
+
   private File getTempFile() throws IOException {
     File tempFile = File.createTempFile("footer_", ".txt");
     tempFile.deleteOnExit();
@@ -435,6 +447,13 @@ public class TestInputFormat {
       int loc = locations[i];
       ParquetInputSplit split = splits.get(i);
       assertEquals(message(splits) + i, "[foo" + loc + ".datanode, bar" + loc + ".datanode]", Arrays.toString(split.getLocations()));
+    }
+  }
+
+  private void shouldOneSplitRowGroupOffsetBe(ParquetInputSplit split, int... rowGroupOffsets) {
+    assertEquals(split.toString(), rowGroupOffsets.length, split.getRowGroupOffsets().length);
+    for (int i = 0; i < rowGroupOffsets.length; i++) {
+      assertEquals(split.toString(), rowGroupOffsets[i], split.getRowGroupOffsets()[i]);
     }
   }
 
