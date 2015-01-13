@@ -92,7 +92,7 @@
     <dependency>
       <groupId>com.twitter</groupId>
       <artifactId>scrooge-core_${scala.binary.version}</artifactId>
-      <version>3.16.3</version>
+      <version>3.17.0</version>
     </dependency>
     <dependency>
       <groupId>com.twitter</groupId>
@@ -185,7 +185,7 @@
         <plugin>
             <groupId>com.twitter</groupId>
             <artifactId>scrooge-maven-plugin</artifactId>
-            <version>3.9.0</version>
+            <version>3.17.0</version>
             <configuration>
                 <outputDirectory>${project.build.directory}/generated-test-sources/scrooge</outputDirectory>
                 <thriftNamespaceMappings>

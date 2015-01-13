@@ -19,6 +19,7 @@
 package parquet.scrooge;
 
 import org.junit.Test;
+
 import parquet.scrooge.test.AddressWithStreetWithDefaultRequirement;
 import parquet.scrooge.test.TestFieldOfEnum;
 import parquet.scrooge.test.TestListPrimitive;
@@ -28,6 +29,7 @@ import parquet.scrooge.test.TestMapPrimitiveValue;
 import parquet.scrooge.test.TestOptionalMap;
 import parquet.scrooge.test.TestPersonWithAllInformation;
 import parquet.scrooge.test.TestSetPrimitive;
+import parquet.scrooge.test.TestUnion;
 import parquet.thrift.ThriftSchemaConverter;
 import parquet.thrift.struct.ThriftType;
 import static org.junit.Assert.assertEquals;
@@ -42,6 +44,13 @@ public class ScroogeStructConverterTest {
     ThriftType.StructType expected = new ThriftSchemaConverter().toStructType(parquet.thrift.test.TestMapPrimitiveKey.class);
     assertEquals(expected,scroogeMap);
 
+  }
+
+  @Test
+  public void testUnion() throws Exception {
+    ThriftType.StructType expected = new ThriftSchemaConverter().toStructType(parquet.thrift.test.TestUnion.class);
+    ThriftType.StructType scroogeUnion = new ScroogeStructConverter().convert(TestUnion.class);
+    assertEquals(expected, scroogeUnion);
   }
 
   @Test
@@ -95,7 +104,7 @@ public class ScroogeStructConverterTest {
   public void testDefaultFields() throws Exception{
     ThriftType.StructType scroogePerson = new ScroogeStructConverter().convert(AddressWithStreetWithDefaultRequirement.class);
     ThriftType.StructType expected = new ThriftSchemaConverter().toStructType(parquet.thrift.test.AddressWithStreetWithDefaultRequirement.class);
-//    assertEquals(expected.toJSON(), scroogePerson.toJSON());
+    assertEquals(expected.toJSON(), scroogePerson.toJSON());
   }
 
   @Test
