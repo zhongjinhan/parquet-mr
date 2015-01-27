@@ -233,9 +233,11 @@ public class ParquetMetadataConverter {
   public static Statistics toParquetStatistics(parquet.column.statistics.Statistics statistics) {
     Statistics stats = new Statistics();
     if (!statistics.isEmpty()) {
-      stats.setMax(statistics.getMaxBytes());
-      stats.setMin(statistics.getMinBytes());
       stats.setNull_count(statistics.getNumNulls());
+      if(statistics.hasNonNullValue()) {
+        stats.setMax(statistics.getMaxBytes());
+        stats.setMin(statistics.getMinBytes());
+     }
     }
     return stats;
   }
@@ -245,7 +247,9 @@ public class ParquetMetadataConverter {
     parquet.column.statistics.Statistics stats = parquet.column.statistics.Statistics.getStatsBasedOnType(type);
     // If there was no statistics written to the footer, create an empty Statistics object and return
     if (statistics != null) {
-      stats.setMinMaxFromBytes(statistics.min.array(), statistics.max.array());
+      if (statistics.isSetMax() && statistics.isSetMin()) {
+        stats.setMinMaxFromBytes(statistics.min.array(), statistics.max.array());
+      }
       stats.setNumNulls(statistics.null_count);
     }
     return stats;
