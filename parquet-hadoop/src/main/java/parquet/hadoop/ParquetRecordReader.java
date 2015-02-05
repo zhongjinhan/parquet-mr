@@ -37,18 +37,17 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.TaskInputOutputContext;
 
+import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import parquet.Log;
 import parquet.filter.UnboundRecordFilter;
 import parquet.filter2.compat.FilterCompat;
 import parquet.filter2.compat.FilterCompat.Filter;
-import parquet.filter2.compat.RowGroupFilter;
 import parquet.hadoop.api.ReadSupport;
 import parquet.hadoop.metadata.BlockMetaData;
 import parquet.hadoop.metadata.ParquetMetadata;
 import parquet.hadoop.util.ContextUtil;
 import parquet.hadoop.util.counters.BenchmarkCounter;
 import parquet.schema.MessageType;
-import parquet.schema.MessageTypeParser;
 
 /**
  * Reads the records from a block of a Parquet file
@@ -135,13 +134,13 @@ public class ParquetRecordReader<T> extends RecordReader<Void, T> {
               + context.getClass().getCanonicalName());
     }
 
-    initializeInternalReader((ParquetInputSplit)inputSplit, ContextUtil.getConfiguration(context));
+    initializeInternalReader(toParquetSplit(inputSplit), ContextUtil.getConfiguration(context));
   }
 
   public void initialize(InputSplit inputSplit, Configuration configuration, Reporter reporter)
       throws IOException, InterruptedException {
     BenchmarkCounter.initCounterFromReporter(reporter,configuration);
-    initializeInternalReader((ParquetInputSplit) inputSplit, configuration);
+    initializeInternalReader(toParquetSplit(inputSplit), configuration);
   }
 
   private void initializeInternalReader(ParquetInputSplit split, Configuration configuration) throws IOException {
@@ -186,14 +185,9 @@ public class ParquetRecordReader<T> extends RecordReader<Void, T> {
       }
     }
     MessageType fileSchema = footer.getFileMetaData().getSchema();
-    MessageType requestedSchema = MessageTypeParser.parseMessageType(split.getRequestedSchema());
     Map<String, String> fileMetaData = footer.getFileMetaData().getKeyValueMetaData();
-    Map<String, String> readSupportMetadata = split.getReadSupportMetadata();
     internalReader.initialize(
-        requestedSchema, fileSchema,
-        fileMetaData, readSupportMetadata,
-        path,
-        filteredBlocks, configuration);
+        fileSchema, fileMetaData, path, filteredBlocks, configuration);
   }
 
   /**
@@ -202,5 +196,19 @@ public class ParquetRecordReader<T> extends RecordReader<Void, T> {
   @Override
   public boolean nextKeyValue() throws IOException, InterruptedException {
     return internalReader.nextKeyValue();
+  }
+
+  private ParquetInputSplit toParquetSplit(InputSplit split) throws IOException {
+    if (split instanceof ParquetInputSplit) {
+      return (ParquetInputSplit) split;
+    } else if (split instanceof FileSplit) {
+      return ParquetInputSplit.from((FileSplit) split);
+    } else if (split instanceof org.apache.hadoop.mapred.FileSplit) {
+      return ParquetInputSplit.from(
+          (org.apache.hadoop.mapred.FileSplit) split);
+    } else {
+      throw new IllegalArgumentException(
+          "Invalid split (not a FileSplit or ParquetInputSplit): " + split);
+    }
   }
 }

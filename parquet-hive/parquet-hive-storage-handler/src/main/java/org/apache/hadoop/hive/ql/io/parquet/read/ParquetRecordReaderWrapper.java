@@ -215,9 +215,7 @@ public class ParquetRecordReaderWrapper  implements RecordReader<Void, ArrayWrit
                 splitStart + splitLength,
                 splitLength,
                 fileSplit.getLocations(),
-                null,
-                readContext.getRequestedSchema().toString(),
-                readContext.getReadSupportMetadata());
+                null);
     } else {
       throw new IllegalArgumentException("Unknown split type: " + oldSplit);
     }

@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -35,7 +34,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
-import parquet.bytes.BytesUtils;
 import parquet.hadoop.metadata.BlockMetaData;
 
 /**
@@ -53,8 +51,6 @@ public class ParquetInputSplit extends FileSplit implements Writable {
 
   private long end;
   private long[] rowGroupOffsets;
-  private String requestedSchema;
-  private Map<String, String> readSupportMetadata;
 
   /**
    * Writables must have a parameterless constructor
@@ -65,7 +61,7 @@ public class ParquetInputSplit extends FileSplit implements Writable {
 
   /**
    * For compatibility only
-   * use {@link ParquetInputSplit#ParquetInputSplit(Path, long, long, long, String[], long[], String, Map)}
+   * use {@link ParquetInputSplit#ParquetInputSplit(Path, long, long, long, String[], long[])}
    * @param path
    * @param start
    * @param length
@@ -87,11 +83,7 @@ public class ParquetInputSplit extends FileSplit implements Writable {
       String fileSchema,
       Map<String, String> extraMetadata,
       Map<String, String> readSupportMetadata) {
-    this(
-        path, start, length, end(blocks), hosts,
-        offsets(blocks),
-        requestedSchema, readSupportMetadata
-        );
+    this(path, start, length, end(blocks), hosts, offsets(blocks));
   }
 
   private static long end(List<BlockMetaData> blocks) {
@@ -117,32 +109,64 @@ public class ParquetInputSplit extends FileSplit implements Writable {
   }
 
   /**
+   * Builds a {@code ParquetInputSplit} from a mapreduce {@link FileSplit}.
+   *
+   * @param split a mapreduce FileSplit
+   * @return a ParquetInputSplit
+   * @throws IOException
+   */
+  static ParquetInputSplit from(FileSplit split) throws IOException {
+    return new ParquetInputSplit(split.getPath(),
+        split.getStart(), split.getStart() + split.getLength(),
+        split.getLength(), split.getLocations(), null);
+  }
+
+  /**
+   * Builds a {@code ParquetInputSplit} from a mapred
+   * {@link org.apache.hadoop.mapred.FileSplit}.
+   *
+   * @param split a mapreduce FileSplit
+   * @return a ParquetInputSplit
+   * @throws IOException
+   */
+  static ParquetInputSplit from(org.apache.hadoop.mapred.FileSplit split) throws IOException {
+    return new ParquetInputSplit(split.getPath(),
+        split.getStart(), split.getStart() + split.getLength(),
+        split.getLength(), split.getLocations(), null);
+  }
+
+  /**
    * @param file the path of the file for that split
    * @param start the start offset in the file
    * @param end the end offset in the file
    * @param length the actual size in bytes that we expect to read
    * @param hosts the hosts with the replicas of this data
    * @param rowGroupOffsets the offsets of the rowgroups selected if loaded on the client
-   * @param requestedSchema the user requested schema
-   * @param readSupportMetadata metadata from the read support
+   * @param requestedSchema ignored
+   * @param readSupportMetadata ignored
    */
   public ParquetInputSplit(
       Path file, long start, long end, long length, String[] hosts,
       long[] rowGroupOffsets,
       String requestedSchema,
       Map<String, String> readSupportMetadata) {
-    super(file, start, length, hosts);
-    this.end = end;
-    this.rowGroupOffsets = rowGroupOffsets;
-    this.requestedSchema = requestedSchema;
-    this.readSupportMetadata = readSupportMetadata;
+    this(file, start, end, length, hosts, rowGroupOffsets);
   }
 
   /**
-   * @return the requested schema
+   * @param file the path of the file for that split
+   * @param start the start offset in the file
+   * @param end the end offset in the file
+   * @param length the actual size in bytes that we expect to read
+   * @param hosts the hosts with the replicas of this data
+   * @param rowGroupOffsets the offsets of the rowgroups selected if loaded on the client
    */
-  public String getRequestedSchema() {
-    return requestedSchema;
+  public ParquetInputSplit(
+      Path file, long start, long end, long length, String[] hosts,
+      long[] rowGroupOffsets) {
+    super(file, start, length, hosts);
+    this.end = end;
+    this.rowGroupOffsets = rowGroupOffsets;
   }
 
   /**
@@ -151,6 +175,15 @@ public class ParquetInputSplit extends FileSplit implements Writable {
    */
   @Deprecated
   public String getFileSchema() {
+    return null;
+  }
+
+  /**
+   * @return the requested schema
+   * @deprecated read schema is no longer passed via an input split
+   */
+  @Deprecated
+  public String getRequestedSchema() {
     return null;
   }
 
@@ -172,9 +205,11 @@ public class ParquetInputSplit extends FileSplit implements Writable {
 
   /**
    * @return app specific metadata provided by the read support in the init phase
+   * @deprecated read metadata is no longer determined on the client side
    */
+  @Deprecated
   public Map<String, String> getReadSupportMetadata() {
-    return readSupportMetadata;
+    return new HashMap<String, String>();
   }
 
   /**
@@ -201,8 +236,6 @@ public class ParquetInputSplit extends FileSplit implements Writable {
         + " length: " + getLength()
         + " hosts: " + hosts
         + (rowGroupOffsets == null ? "" : (" row groups: " + Arrays.toString(rowGroupOffsets)))
-        + " requestedSchema: " +  requestedSchema
-        + " readSupportMetadata: " + readSupportMetadata
         + "}";
   }
 
@@ -221,8 +254,6 @@ public class ParquetInputSplit extends FileSplit implements Writable {
         rowGroupOffsets[i] = in.readLong();
       }
     }
-    this.requestedSchema = readUTF8(in);
-    this.readSupportMetadata = readKeyValues(in);
     in.close();
   }
 
@@ -242,20 +273,8 @@ public class ParquetInputSplit extends FileSplit implements Writable {
         out.writeLong(o);
       }
     }
-    writeUTF8(out, requestedSchema);
-    writeKeyValues(out, readSupportMetadata);
     out.close();
     writeArray(hout, baos.toByteArray());
-  }
-
-  private static void writeUTF8(DataOutput out, String string) throws IOException {
-    byte[] bytes = string.getBytes(BytesUtils.UTF8);
-    writeArray(out, bytes);
-  }
-
-  private static String readUTF8(DataInput in) throws IOException {
-    byte[] bytes = readArray(in);
-    return new String(bytes, BytesUtils.UTF8).intern();
   }
 
   private static void writeArray(DataOutput out, byte[] bytes) throws IOException {
@@ -268,29 +287,6 @@ public class ParquetInputSplit extends FileSplit implements Writable {
     byte[] bytes = new byte[len];
     in.readFully(bytes);
     return bytes;
-  }
-
-  private Map<String, String> readKeyValues(DataInput in) throws IOException {
-    int size = in.readInt();
-    Map<String, String> map = new HashMap<String, String>(size);
-    for (int i = 0; i < size; i++) {
-      String key = readUTF8(in).intern();
-      String value = readUTF8(in).intern();
-      map.put(key, value);
-    }
-    return map;
-  }
-
-  private void writeKeyValues(DataOutput out, Map<String, String> map) throws IOException {
-    if (map == null) {
-      out.writeInt(0);
-    } else {
-      out.writeInt(map.size());
-      for (Entry<String, String> entry : map.entrySet()) {
-        writeUTF8(out, entry.getKey());
-        writeUTF8(out, entry.getValue());
-      }
-    }
   }
 
 }
