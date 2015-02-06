@@ -108,6 +108,15 @@ public class ParquetInputSplit extends FileSplit implements Writable {
   }
 
   /**
+   * @return the block meta data
+   * @deprecated the file footer is no longer read before creating input splits
+   */
+  @Deprecated
+  public List<BlockMetaData> getBlocks() {
+    return Arrays.asList();
+  }
+
+  /**
    * @param file the path of the file for that split
    * @param start the start offset in the file
    * @param end the end offset in the file
@@ -137,10 +146,28 @@ public class ParquetInputSplit extends FileSplit implements Writable {
   }
 
   /**
+   * @return the file schema
+   * @deprecated the file footer is no longer read before creating input splits
+   */
+  @Deprecated
+  public String getFileSchema() {
+    return null;
+  }
+
+  /**
    * @return the end offset of that split
    */
   long getEnd() {
     return end;
+  }
+
+  /**
+   * @return app specific metadata from the file
+   * @deprecated the file footer is no longer read before creating input splits
+   */
+  @Deprecated
+  public Map<String, String> getExtraMetadata() {
+    return new HashMap<String, String>();
   }
 
   /**
