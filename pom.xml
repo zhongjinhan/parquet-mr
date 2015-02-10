@@ -274,6 +274,7 @@
                    <dumpDetails>true</dumpDetails>
                    <previousVersion>${previous.version}</previousVersion>
                    <excludes>
+                     <exclude>parquet/filter2/**</exclude>
                      <exclude>parquet/org/**</exclude>
                      <! one time exclusions that should be removed >
                      <exclude>parquet/io/api/Binary</exclude>
