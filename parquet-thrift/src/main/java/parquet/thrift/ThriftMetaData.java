@@ -17,10 +17,11 @@
  * under the License.
  */
 package parquet.thrift;
-import java.util.*;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import org.apache.thrift.TBase;
-
 import parquet.Log;
 import parquet.hadoop.BadConfigurationException;
 import parquet.thrift.struct.ThriftType;
@@ -91,17 +92,33 @@ public class ThriftMetaData {
    * Reads ThriftMetadata from the parquet file footer.
    *
    * @param extraMetaData  extraMetaData field of the parquet footer
-   * @return
+   * @return the ThriftMetaData used to write a data file
    */
   public static ThriftMetaData fromExtraMetaData(
       Map<String, String> extraMetaData) {
     final String thriftClassName = extraMetaData.get(THRIFT_CLASS);
     final String thriftDescriptorString = extraMetaData.get(THRIFT_DESCRIPTOR);
-    if (thriftClassName == null && thriftDescriptorString == null) {
+    if (thriftClassName == null || thriftDescriptorString == null) {
       return null;
     }
     final StructType descriptor = parseDescriptor(thriftDescriptorString);
     return new ThriftMetaData(thriftClassName, descriptor);
+  }
+
+  /**
+   * Creates ThriftMetaData from a Thrift-generated class.
+   *
+   * @param thriftClass a Thrift-generated class
+   * @return ThriftMetaData for the given class
+   */
+  @SuppressWarnings("unchecked")
+  public static ThriftMetaData fromThriftClass(Class<?> thriftClass) {
+    if (thriftClass != null && TBase.class.isAssignableFrom(thriftClass)) {
+      Class<? extends TBase<?, ?>> tClass = (Class<? extends TBase<?, ?>>) thriftClass;
+      StructType descriptor = new ThriftSchemaConverter().toStructType(tClass);
+      return new ThriftMetaData(thriftClass.getName(), descriptor);
+    }
+    return null;
   }
 
   private static StructType parseDescriptor(String json) {
