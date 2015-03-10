@@ -39,6 +39,8 @@ public class AvroReadSupport<T extends IndexedRecord> extends ReadSupport<T> {
   private static final String AVRO_READ_SCHEMA = "parquet.avro.read.schema";
 
   static final String AVRO_SCHEMA_METADATA_KEY = "parquet.avro.schema";
+  // older files were written with the schema in this metadata key
+  static final String OLD_AVRO_SCHEMA_METADATA_KEY = "avro.schema";
   private static final String AVRO_READ_SCHEMA_METADATA_KEY = "avro.read.schema";
 
   public static String AVRO_DATA_SUPPLIER = "parquet.avro.data.supplier";
@@ -97,6 +99,9 @@ public class AvroReadSupport<T extends IndexedRecord> extends ReadSupport<T> {
     } else if (keyValueMetaData.get(AVRO_SCHEMA_METADATA_KEY) != null) {
       // use the Avro schema from the file metadata if present
       avroSchema = new Schema.Parser().parse(keyValueMetaData.get(AVRO_SCHEMA_METADATA_KEY));
+    } else if (keyValueMetaData.get(OLD_AVRO_SCHEMA_METADATA_KEY) != null) {
+      // use the Avro schema from the file metadata if present
+      avroSchema = new Schema.Parser().parse(keyValueMetaData.get(OLD_AVRO_SCHEMA_METADATA_KEY));
     } else {
       // default to converting the Parquet schema into an Avro schema
       avroSchema = new AvroSchemaConverter(configuration).convert(parquetSchema);
