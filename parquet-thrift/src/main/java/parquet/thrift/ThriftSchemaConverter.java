@@ -20,9 +20,12 @@ package parquet.thrift;
 
 import com.twitter.elephantbird.thrift.TStructDescriptor;
 import com.twitter.elephantbird.thrift.TStructDescriptor.Field;
+import java.util.HashSet;
+import java.util.Set;
 import org.apache.thrift.TBase;
 import org.apache.thrift.TEnum;
-import parquet.schema.*;
+import parquet.schema.MessageType;
+import parquet.schema.Type;
 import parquet.thrift.projection.FieldProjectionFilter;
 import parquet.thrift.struct.ThriftField;
 import parquet.thrift.struct.ThriftField.Requirement;
@@ -63,6 +66,37 @@ public class ThriftSchemaConverter {
 
   public ThriftType.StructType toStructType(Class<? extends TBase<?, ?>> thriftClass) {
     return new ThriftStructConverter().toStructType(thriftClass);
+  }
+
+  /**
+   * Returns whether the given type is the element type of a list or is a
+   * synthetic group with one field that is the element type. This is
+   * determined by checking whether the type can be a synthetic group and by
+   * checking whether a potential synthetic group matches the expected
+   * ThriftField.
+   * <p>
+   * This method never guesses because the expected ThriftField is known.
+   *
+   * @param repeatedType a type that may be the element type
+   * @param thriftElement the expected Schema for list elements
+   * @return {@code true} if the repeatedType is the element schema
+   */
+  static boolean isElementType(Type repeatedType, ThriftField thriftElement) {
+    if (repeatedType.isPrimitive() ||
+        (repeatedType.asGroupType().getFieldCount() != 1)) {
+      // The repeated type must be the element type because it is an invalid
+      // synthetic wrapper (must be a group with one field).
+      return true;
+    } else if (thriftElement != null && thriftElement.getType() instanceof StructType) {
+      Set<String> fieldNames = new HashSet<String>();
+      for (ThriftField field : ((StructType) thriftElement.getType()).getChildren()) {
+        fieldNames.add(field.getName());
+      }
+      // If the repeated type is a subset of the structure of the ThriftField,
+      // then it must be the element type.
+      return fieldNames.contains(repeatedType.asGroupType().getFieldName(0));
+    }
+    return false;
   }
 
   private static class ThriftStructConverter {
