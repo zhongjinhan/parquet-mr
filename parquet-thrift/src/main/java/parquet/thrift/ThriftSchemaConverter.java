@@ -24,6 +24,8 @@ import java.util.HashSet;
 import java.util.Set;
 import org.apache.thrift.TBase;
 import org.apache.thrift.TEnum;
+import org.apache.thrift.TUnion;
+
 import parquet.schema.MessageType;
 import parquet.schema.Type;
 import parquet.thrift.projection.FieldProjectionFilter;
@@ -31,6 +33,7 @@ import parquet.thrift.struct.ThriftField;
 import parquet.thrift.struct.ThriftField.Requirement;
 import parquet.thrift.struct.ThriftType;
 import parquet.thrift.struct.ThriftType.*;
+import parquet.thrift.struct.ThriftType.StructType.StructOrUnionType;
 import parquet.thrift.struct.ThriftTypeID;
 
 import java.util.ArrayList;
@@ -44,6 +47,10 @@ import java.util.List;
 public class ThriftSchemaConverter {
 
   private final FieldProjectionFilter fieldProjectionFilter;
+
+  public static <T extends TBase<?,?>> StructOrUnionType structOrUnionType(Class<T> klass) {
+    return TUnion.class.isAssignableFrom(klass) ? StructOrUnionType.UNION : StructOrUnionType.STRUCT;
+  }
 
   public ThriftSchemaConverter() {
     this(new FieldProjectionFilter());
@@ -117,7 +124,7 @@ public class ThriftSchemaConverter {
                         Requirement.fromType(field.getFieldMetaData().requirementType);
         children.add(toThriftField(field.getName(), field, req));
       }
-      return new StructType(children);
+      return new StructType(children, structOrUnionType(struct.getThriftClass()));
     }
 
     private ThriftField toThriftField(String name, Field field, ThriftField.Requirement requirement) {
