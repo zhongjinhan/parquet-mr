@@ -81,8 +81,6 @@ public class AvroReadSupport<T extends IndexedRecord> extends ReadSupport<T> {
       metadata = new LinkedHashMap<String, String>();
       metadata.put(AVRO_READ_SCHEMA_METADATA_KEY, avroReadSchema);
     }
-    // use getSchemaForRead because it checks that the requested schema is a
-    // subset of the columns in the file schema
     return new ReadContext(projection, metadata);
   }
 
