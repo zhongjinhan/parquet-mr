@@ -121,7 +121,8 @@ public class ParquetInputSplit extends FileSplit implements Writable {
    */
   @Deprecated
   public List<BlockMetaData> getBlocks() {
-    return Arrays.asList();
+    throw new UnsupportedOperationException(
+        "Splits no longer have row group metadata, see PARQUET-234");
   }
 
   /**
@@ -186,21 +187,23 @@ public class ParquetInputSplit extends FileSplit implements Writable {
   }
 
   /**
+   * @return the requested schema
+   * @deprecated the file footer is no longer read before creating input splits
+   */
+  @Deprecated
+  String getRequestedSchema() {
+    throw new UnsupportedOperationException(
+        "Splits no longer have the requested schema, see PARQUET-234");
+  }
+
+  /**
    * @return the file schema
    * @deprecated the file footer is no longer read before creating input splits
    */
   @Deprecated
   public String getFileSchema() {
-    return null;
-  }
-
-  /**
-   * @return the requested schema
-   * @deprecated read schema is no longer passed via an input split
-   */
-  @Deprecated
-  public String getRequestedSchema() {
-    return null;
+    throw new UnsupportedOperationException(
+        "Splits no longer have the file schema, see PARQUET-234");
   }
 
   /**
@@ -216,16 +219,17 @@ public class ParquetInputSplit extends FileSplit implements Writable {
    */
   @Deprecated
   public Map<String, String> getExtraMetadata() {
-    return new HashMap<String, String>();
+    throw new UnsupportedOperationException(
+        "Splits no longer have file metadata, see PARQUET-234");
   }
 
   /**
    * @return app specific metadata provided by the read support in the init phase
-   * @deprecated read metadata is no longer determined on the client side
    */
   @Deprecated
-  public Map<String, String> getReadSupportMetadata() {
-    return new HashMap<String, String>();
+  Map<String, String> getReadSupportMetadata() {
+    throw new UnsupportedOperationException(
+        "Splits no longer have read-support metadata, see PARQUET-234");
   }
 
   /**
