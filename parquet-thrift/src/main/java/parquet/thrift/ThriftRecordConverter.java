@@ -931,7 +931,9 @@ public class ThriftRecordConverter<T> extends RecordMaterializer<T> {
       rootEvents.clear();
       return thriftReader.readOneRecord(protocol);
     } catch (TException e) {
-      throw new ParquetDecodingException("Could not read thrift object from protocol", e);
+      protocol.clear();
+      rootEvents.clear();
+      throw new RecordMaterializationException("Could not read thrift object from protocol", e);
     }
   }
 

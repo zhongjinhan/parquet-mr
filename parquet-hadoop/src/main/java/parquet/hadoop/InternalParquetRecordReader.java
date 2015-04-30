@@ -42,6 +42,7 @@ import parquet.hadoop.util.counters.BenchmarkCounter;
 import parquet.io.ColumnIOFactory;
 import parquet.io.MessageColumnIO;
 import parquet.io.ParquetDecodingException;
+import parquet.io.api.RecordMaterializer.RecordMaterializationException;
 import parquet.io.api.RecordMaterializer;
 import parquet.schema.GroupType;
 import parquet.schema.MessageType;
@@ -78,6 +79,7 @@ class InternalParquetRecordReader<T> {
   private long totalCountLoadedSoFar = 0;
 
   private Path file;
+  private UnmaterializableRecordCounter unmaterializableRecordCounter;
 
   /**
    * @param readSupport Object which helps reads files of the given type, e.g. Thrift, Avro.
@@ -176,6 +178,7 @@ class InternalParquetRecordReader<T> {
     for (BlockMetaData block : blocks) {
       total += block.getRowCount();
     }
+    this.unmaterializableRecordCounter = new UnmaterializableRecordCounter(configuration, total);
     LOG.info("RecordReader initialized will read a total of " + total + " records.");
   }
 
@@ -203,8 +206,17 @@ class InternalParquetRecordReader<T> {
 
       try {
         checkRead();
-        currentValue = recordReader.read();
         current ++;
+
+        try {
+          currentValue = recordReader.read();
+        } catch (RecordMaterializationException e) {
+          // this might throw, but it's fatal if it does.
+          unmaterializableRecordCounter.incErrors(e);
+          if (DEBUG) LOG.debug("skipping a corrupt record");
+          continue;
+        }
+
         if (recordReader.shouldSkipCurrentRecord()) {
           // this record is being filtered via the filter2 package
           if (DEBUG) LOG.debug("skipping record");
