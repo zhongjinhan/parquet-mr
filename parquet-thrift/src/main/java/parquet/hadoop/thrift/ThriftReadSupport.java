@@ -29,7 +29,7 @@ import org.apache.thrift.TBase;
 import org.apache.thrift.protocol.TProtocol;
 
 import parquet.Log;
-import parquet.Preconditions;
+import parquet.Strings;
 import parquet.hadoop.api.InitContext;
 import parquet.hadoop.api.ReadSupport;
 import parquet.io.ParquetDecodingException;
@@ -40,19 +40,28 @@ import parquet.thrift.ThriftMetaData;
 import parquet.thrift.ThriftRecordConverter;
 import parquet.thrift.ThriftSchemaConverter;
 import parquet.thrift.projection.FieldProjectionFilter;
+import parquet.thrift.projection.StrictFieldProjectionFilter;
 import parquet.thrift.projection.ThriftProjectionException;
+import parquet.thrift.projection.deprecated.DeprecatedFieldProjectionFilter;
 import parquet.thrift.struct.ThriftType.StructType;
 
 public class ThriftReadSupport<T> extends ReadSupport<T> {
   private static final Log LOG = Log.getLog(ThriftReadSupport.class);
 
   /**
-   * configuration key for thrift read projection schema
+   * Deprecated. Use {@link #STRICT_THRIFT_COLUMN_FILTER_KEY}
+   * Accepts a ";" delimited list of globs in the syntax implemented by {@link DeprecatedFieldProjectionFilter}
    */
-  public static final String THRIFT_COLUMN_FILTER_KEY = "parquet.thrift.column.filter";
+  @Deprecated
+  public static final String DEPRECATED_THRIFT_COLUMN_FILTER_KEY = "parquet.thrift.column.filter";
+
+  /**
+   * Accepts a ";" delimited list of glob paths, in the syntax implemented by {@link StrictFieldProjectionFilter}
+   */
+  public static final String STRICT_THRIFT_COLUMN_FILTER_KEY = "parquet.thrift.column.projection.globs";
+
   private static final String RECORD_CONVERTER_DEFAULT = TBaseRecordConverter.class.getName();
   public static final String THRIFT_READ_CLASS_KEY = "parquet.thrift.read.class";
-
 
   /**
    * A {@link ThriftRecordConverter} builds an object by working with {@link TProtocol}. The default
@@ -89,6 +98,43 @@ public class ThriftReadSupport<T> extends ReadSupport<T> {
     conf.set(RECORD_CONVERTER_CLASS_KEY, klass.getName());
   }
 
+  @Deprecated
+  public static void setProjectionPushdown(JobConf jobConf, String projectionString) {
+    jobConf.set(DEPRECATED_THRIFT_COLUMN_FILTER_KEY, projectionString);
+  }
+
+  public static void setStrictFieldProjectionFilter(Configuration conf, String semicolonDelimitedGlobs) {
+    conf.set(STRICT_THRIFT_COLUMN_FILTER_KEY, semicolonDelimitedGlobs);
+  }
+
+  public static FieldProjectionFilter getFieldProjectionFilter(Configuration conf) {
+    String deprecated = conf.get(DEPRECATED_THRIFT_COLUMN_FILTER_KEY);
+    String strict = conf.get(STRICT_THRIFT_COLUMN_FILTER_KEY);
+
+    if (Strings.isNullOrEmpty(deprecated) && Strings.isNullOrEmpty(strict)) {
+      return null;
+    }
+
+    if(!Strings.isNullOrEmpty(deprecated) && !Strings.isNullOrEmpty(strict)) {
+      throw new ThriftProjectionException(
+          "You cannot provide both "
+              + DEPRECATED_THRIFT_COLUMN_FILTER_KEY
+              + " and "
+              + STRICT_THRIFT_COLUMN_FILTER_KEY
+              +"! "
+              + DEPRECATED_THRIFT_COLUMN_FILTER_KEY
+              + " is deprecated."
+      );
+    }
+
+    if (!Strings.isNullOrEmpty(deprecated)) {
+      LOG.warn(String.format("Using %s is deprecated. Please see the docs for %s!",
+          DEPRECATED_THRIFT_COLUMN_FILTER_KEY, STRICT_THRIFT_COLUMN_FILTER_KEY));
+      return new DeprecatedFieldProjectionFilter(deprecated);
+    }
+
+    return StrictFieldProjectionFilter.fromSemicolonDelimitedString(strict);
+  }
 
   /**
    * used from hadoop
@@ -110,21 +156,25 @@ public class ThriftReadSupport<T> extends ReadSupport<T> {
     final MessageType fileMessageType = context.getFileSchema();
     MessageType requestedProjection = fileMessageType;
     String partialSchemaString = configuration.get(ReadSupport.PARQUET_READ_SCHEMA);
-    String projectionFilterString = configuration.get(THRIFT_COLUMN_FILTER_KEY);
 
-    if (partialSchemaString != null && projectionFilterString != null)
-      throw new ThriftProjectionException("PARQUET_READ_SCHEMA and THRIFT_COLUMN_FILTER_KEY are both specified, should use only one.");
+    FieldProjectionFilter projectionFilter = getFieldProjectionFilter(configuration);
+
+    if (partialSchemaString != null && projectionFilter != null) {
+      throw new ThriftProjectionException(
+          String.format("You cannot provide both a partial schema and field projection filter."
+                  + "Only one of (%s, %s, %s) should be set.",
+              PARQUET_READ_SCHEMA, STRICT_THRIFT_COLUMN_FILTER_KEY, DEPRECATED_THRIFT_COLUMN_FILTER_KEY));
+    }
 
     //set requestedProjections only when it's specified
     if (partialSchemaString != null) {
       requestedProjection = getSchemaForRead(fileMessageType, partialSchemaString);
-    } else if (projectionFilterString != null && !projectionFilterString.isEmpty()) {
-      FieldProjectionFilter fieldProjectionFilter = new FieldProjectionFilter(projectionFilterString);
+    } else if (projectionFilter != null) {
       try {
         initThriftClassFromMultipleFiles(context.getKeyValueMetadata(), configuration);
-        requestedProjection =  getProjectedSchema(fieldProjectionFilter);
+        requestedProjection =  getProjectedSchema(projectionFilter);
       } catch (ClassNotFoundException e) {
-        throw new ThriftProjectionException("can not find thriftClass from configuration");
+        throw new ThriftProjectionException("can not find thriftClass from configuration", e);
       }
     }
 
@@ -132,6 +182,7 @@ public class ThriftReadSupport<T> extends ReadSupport<T> {
     return new ReadContext(schemaForRead);
   }
 
+  @SuppressWarnings("unchecked")
   protected MessageType getProjectedSchema(FieldProjectionFilter fieldProjectionFilter) {
     return new ThriftSchemaConverter(fieldProjectionFilter).convert((Class<TBase<?, ?>>)thriftClass);
   }
@@ -225,9 +276,5 @@ public class ThriftReadSupport<T> extends ReadSupport<T> {
     } catch (NoSuchMethodException e) {
       throw new RuntimeException("Cannot find constructor for Thrift converter class: " + converterClassName, e);
     }
-  }
-
-  public static void setProjectionPushdown(JobConf jobConf, String projectionString) {
-    jobConf.set(THRIFT_COLUMN_FILTER_KEY, projectionString);
   }
 }

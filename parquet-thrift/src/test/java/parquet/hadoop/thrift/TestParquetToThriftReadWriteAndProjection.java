@@ -192,8 +192,8 @@ public class TestParquetToThriftReadWriteAndProjection {
 
   private void shouldDoProjectionWithThriftColumnFilter(String filterDesc,TBase toWrite, TBase toRead,Class<? extends TBase<?,?>> thriftClass) throws Exception {
     Configuration conf = new Configuration();
-    conf.set(ThriftReadSupport.THRIFT_COLUMN_FILTER_KEY, filterDesc);
-    shouldDoProjection(conf,toWrite,toRead,thriftClass);
+    conf.set(ThriftReadSupport.DEPRECATED_THRIFT_COLUMN_FILTER_KEY, filterDesc);
+    shouldDoProjection(conf, toWrite, toRead, thriftClass);
   }
 
 
