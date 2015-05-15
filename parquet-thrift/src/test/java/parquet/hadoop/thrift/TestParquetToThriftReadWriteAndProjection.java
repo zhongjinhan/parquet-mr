@@ -49,6 +49,7 @@ import com.twitter.data.proto.tutorial.thrift.AddressBook;
 import com.twitter.data.proto.tutorial.thrift.Name;
 import com.twitter.data.proto.tutorial.thrift.Person;
 import com.twitter.data.proto.tutorial.thrift.PhoneNumber;
+import parquet.schema.InvalidSchemaException;
 import parquet.thrift.test.*;
 
 public class TestParquetToThriftReadWriteAndProjection {
@@ -120,7 +121,8 @@ public class TestParquetToThriftReadWriteAndProjection {
     shouldDoProjectionWithThriftColumnFilter(projectionFilter,toWrite,toWrite,StructWithReorderedOptionalFields.class);
   }
 
-  @Test
+  // The selected group cannot be materialized, but the projection still passes
+  @Test(expected=InvalidSchemaException.class)
   public void testNotPullInOptionalFields() throws Exception {
     final String projectionFilterDesc = "nomatch";
     TBase toWrite=new AddressBook(

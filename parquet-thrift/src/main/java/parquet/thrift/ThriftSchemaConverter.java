@@ -62,9 +62,9 @@ public class ThriftSchemaConverter {
   public MessageType convert(StructType thriftClass) {
     ThriftSchemaConvertVisitor visitor = new ThriftSchemaConvertVisitor(fieldProjectionFilter);
     thriftClass.accept(visitor);
-    MessageType convertedMessageType = visitor.getConvertedMessageType();
     // This introduces a behavior change that is not backported, PARQUET-162
     // fieldProjectionFilter.assertNoUnmatchedPatterns();
+    MessageType convertedMessageType = visitor.getConvertedMessageType();
     return convertedMessageType;
   }
 
