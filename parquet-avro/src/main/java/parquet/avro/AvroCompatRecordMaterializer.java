@@ -20,17 +20,18 @@ package parquet.avro;
 
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.IndexedRecord;
 import parquet.io.api.GroupConverter;
 import parquet.io.api.RecordMaterializer;
 import parquet.schema.MessageType;
 
-class AvroRecordMaterializer<T> extends RecordMaterializer<T> {
+class AvroCompatRecordMaterializer<T extends IndexedRecord> extends RecordMaterializer<T> {
 
-  private AvroRecordConverter<T> root;
+  private AvroIndexedRecordConverter<T> root;
 
-  public AvroRecordMaterializer(MessageType requestedSchema, Schema avroSchema,
-      GenericData baseModel) {
-    this.root = new AvroRecordConverter<T>(requestedSchema, avroSchema, baseModel);
+  public AvroCompatRecordMaterializer(MessageType requestedSchema, Schema avroSchema,
+                                      GenericData baseModel) {
+    this.root = new AvroIndexedRecordConverter<T>(requestedSchema, avroSchema, baseModel);
   }
 
   @Override

@@ -19,7 +19,6 @@
 package parquet.avro;
 
 import java.lang.reflect.Constructor;
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -41,6 +40,13 @@ import parquet.schema.MessageType;
 import parquet.schema.OriginalType;
 import parquet.schema.Type;
 
+/**
+ * This {@link Converter} class materializes records as Avro
+ * {@link IndexedRecord} instances. This is replaced by
+ * {@link AvroRecordConverter}, but is included for backward-compatibility.
+ *
+ * @param <T> a subclass of Avro's IndexedRecord
+ */
 class AvroIndexedRecordConverter<T extends IndexedRecord> extends GroupConverter {
 
   private final ParentValueContainer parent;
@@ -73,8 +79,7 @@ class AvroIndexedRecordConverter<T extends IndexedRecord> extends GroupConverter
     this.avroSchema = avroSchema;
     int schemaSize = parquetSchema.getFieldCount();
     this.converters = new Converter[schemaSize];
-    this.specificClass = baseModel instanceof SpecificData ?
-        ((SpecificData) baseModel).getClass(avroSchema) : null;
+    this.specificClass = getDatumClass(baseModel, avroSchema);
 
     this.model = this.specificClass == null ? GenericData.get() : baseModel;
 
@@ -90,7 +95,7 @@ class AvroIndexedRecordConverter<T extends IndexedRecord> extends GroupConverter
       final int finalAvroIndex = avroFieldIndexes.remove(avroField.name());
       converters[parquetFieldIndex++] = newConverter(nonNullSchema, parquetField, model, new ParentValueContainer() {
         @Override
-        void add(Object value) {
+        public void add(Object value) {
           AvroIndexedRecordConverter.this.set(finalAvroIndex, value);
         }
       });
@@ -106,6 +111,14 @@ class AvroIndexedRecordConverter<T extends IndexedRecord> extends GroupConverter
       }
       recordDefaults.put(field, model.getDefaultValue(field));
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <T> Class<T> getDatumClass(GenericData model, Schema schema) {
+    if (model instanceof SpecificData) {
+      return (Class<T>) ((SpecificData) model).getClass(schema);
+    }
+    return null;
   }
 
   private Schema.Field getAvroField(String parquetFieldName) {
@@ -125,19 +138,19 @@ class AvroIndexedRecordConverter<T extends IndexedRecord> extends GroupConverter
   private static Converter newConverter(Schema schema, Type type,
       GenericData model, ParentValueContainer parent) {
     if (schema.getType().equals(Schema.Type.BOOLEAN)) {
-      return new FieldBooleanConverter(parent);
+      return new AvroConverters.FieldBooleanConverter(parent);
     } else if (schema.getType().equals(Schema.Type.INT)) {
-      return new FieldIntegerConverter(parent);
+      return new AvroConverters.FieldIntegerConverter(parent);
     } else if (schema.getType().equals(Schema.Type.LONG)) {
-      return new FieldLongConverter(parent);
+      return new AvroConverters.FieldLongConverter(parent);
     } else if (schema.getType().equals(Schema.Type.FLOAT)) {
-      return new FieldFloatConverter(parent);
+      return new AvroConverters.FieldFloatConverter(parent);
     } else if (schema.getType().equals(Schema.Type.DOUBLE)) {
-      return new FieldDoubleConverter(parent);
+      return new AvroConverters.FieldDoubleConverter(parent);
     } else if (schema.getType().equals(Schema.Type.BYTES)) {
-      return new FieldBytesConverter(parent);
+      return new AvroConverters.FieldByteBufferConverter(parent);
     } else if (schema.getType().equals(Schema.Type.STRING)) {
-      return new FieldStringConverter(parent, type.getOriginalType() == OriginalType.UTF8);
+      return new AvroConverters.FieldStringConverter(parent);
     } else if (schema.getType().equals(Schema.Type.RECORD)) {
       return new AvroIndexedRecordConverter(parent, type.asGroupType(), schema, model);
     } else if (schema.getType().equals(Schema.Type.ENUM)) {
@@ -165,11 +178,12 @@ class AvroIndexedRecordConverter<T extends IndexedRecord> extends GroupConverter
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public void start() {
     // Should do the right thing whether it is generic or specific
     this.currentRecord = (T) ((this.specificClass == null) ?
             new GenericData.Record(avroSchema) :
-            ((SpecificData) model).newInstance(specificClass, avroSchema));
+            SpecificData.newInstance(specificClass, avroSchema));
   }
 
   @Override
@@ -204,170 +218,6 @@ class AvroIndexedRecordConverter<T extends IndexedRecord> extends GroupConverter
 
   T getCurrentRecord() {
     return currentRecord;
-  }
-
-  static abstract class ParentValueContainer {
-
-    /**
-     * Adds the value to the parent.
-     */
-    abstract void add(Object value);
-
-  }
-
-  static final class FieldBooleanConverter extends PrimitiveConverter {
-
-    private final ParentValueContainer parent;
-
-    public FieldBooleanConverter(ParentValueContainer parent) {
-      this.parent = parent;
-    }
-
-    @Override
-    final public void addBoolean(boolean value) {
-      parent.add(value);
-    }
-
-  }
-
-  static final class FieldIntegerConverter extends PrimitiveConverter {
-
-    private final ParentValueContainer parent;
-
-    public FieldIntegerConverter(ParentValueContainer parent) {
-      this.parent = parent;
-    }
-
-    @Override
-    final public void addInt(int value) {
-      parent.add(value);
-    }
-
-  }
-
-  static final class FieldLongConverter extends PrimitiveConverter {
-
-    private final ParentValueContainer parent;
-
-    public FieldLongConverter(ParentValueContainer parent) {
-      this.parent = parent;
-    }
-
-    @Override
-    final public void addInt(int value) {
-      parent.add(Long.valueOf(value));
-    }
-
-    @Override
-    final public void addLong(long value) {
-      parent.add(value);
-    }
-
-  }
-
-  static final class FieldFloatConverter extends PrimitiveConverter {
-
-    private final ParentValueContainer parent;
-
-    public FieldFloatConverter(ParentValueContainer parent) {
-      this.parent = parent;
-    }
-
-    @Override
-    final public void addInt(int value) {
-      parent.add(Float.valueOf(value));
-    }
-
-    @Override
-    final public void addLong(long value) {
-      parent.add(Float.valueOf(value));
-    }
-
-    @Override
-    final public void addFloat(float value) {
-      parent.add(value);
-    }
-
-  }
-
-  static final class FieldDoubleConverter extends PrimitiveConverter {
-
-    private final ParentValueContainer parent;
-
-    public FieldDoubleConverter(ParentValueContainer parent) {
-      this.parent = parent;
-    }
-
-    @Override
-    final public void addInt(int value) {
-      parent.add(Double.valueOf(value));
-    }
-
-    @Override
-    final public void addLong(long value) {
-      parent.add(Double.valueOf(value));
-    }
-
-    @Override
-    final public void addFloat(float value) {
-      parent.add(Double.valueOf(value));
-    }
-
-    @Override
-    final public void addDouble(double value) {
-      parent.add(value);
-    }
-
-  }
-
-  static final class FieldBytesConverter extends PrimitiveConverter {
-
-    private final ParentValueContainer parent;
-
-    public FieldBytesConverter(ParentValueContainer parent) {
-      this.parent = parent;
-    }
-
-    @Override
-    final public void addBinary(Binary value) {
-      parent.add(ByteBuffer.wrap(value.getBytes()));
-    }
-
-  }
-
-  static final class FieldStringConverter extends PrimitiveConverter {
-
-    private final ParentValueContainer parent;
-    private final boolean dictionarySupport;
-    private String[] dict;
-
-    public FieldStringConverter(ParentValueContainer parent, boolean dictionarySupport) {
-      this.parent = parent;
-      this.dictionarySupport = dictionarySupport;
-    }
-
-    @Override
-    final public void addBinary(Binary value) {
-      parent.add(value.toStringUsingUTF8());
-    }
-
-    @Override
-    public boolean hasDictionarySupport() {
-      return dictionarySupport;
-    }
-
-    @Override
-    public void setDictionary(Dictionary dictionary) {
-      dict = new String[dictionary.getMaxId() + 1];
-      for (int i = 0; i <= dictionary.getMaxId(); i++) {
-        dict[i] = dictionary.decodeToBinary(i).toStringUsingUTF8();
-      }
-    }
-
-    @Override
-    public void addValueFromDictionary(int dictionaryId) {
-      parent.add(dict[dictionaryId]);
-    }
   }
 
   static final class FieldEnumConverter extends PrimitiveConverter {
@@ -450,15 +300,13 @@ class AvroIndexedRecordConverter<T extends IndexedRecord> extends GroupConverter
    * </pre>
    *
    * This class also implements LIST element backward-compatibility rules.
-   *
-   * @param <T> The type of elements in the list
    */
-  static final class AvroArrayConverter<T> extends GroupConverter {
+  static final class AvroArrayConverter extends GroupConverter {
 
     private final ParentValueContainer parent;
     private final Schema avroSchema;
     private final Converter converter;
-    private GenericArray<T> array;
+    private GenericArray<Object> array;
 
     public AvroArrayConverter(ParentValueContainer parent, GroupType type,
         Schema avroSchema, GenericData model) {
@@ -473,8 +321,8 @@ class AvroIndexedRecordConverter<T extends IndexedRecord> extends GroupConverter
         converter = newConverter(elementSchema, repeatedType, model, new ParentValueContainer() {
           @Override
           @SuppressWarnings("unchecked")
-          void add(Object value) {
-            array.add((T) value);
+          public void add(Object value) {
+            array.add(value);
           }
         });
       } else {
@@ -490,7 +338,7 @@ class AvroIndexedRecordConverter<T extends IndexedRecord> extends GroupConverter
 
     @Override
     public void start() {
-      array = new GenericData.Array<T>(0, avroSchema);
+      array = new GenericData.Array<Object>(0, avroSchema);
     }
 
     @Override
@@ -542,7 +390,7 @@ class AvroIndexedRecordConverter<T extends IndexedRecord> extends GroupConverter
      * </pre>
      */
     final class ElementConverter extends GroupConverter {
-      private T element;
+      private Object element;
       private final Converter elementConverter;
 
       public ElementConverter(GroupType repeatedType, Schema elementSchema, GenericData model) {
@@ -550,9 +398,8 @@ class AvroIndexedRecordConverter<T extends IndexedRecord> extends GroupConverter
         Schema nonNullElementSchema = AvroSchemaConverter.getNonNull(elementSchema);
         this.elementConverter = newConverter(nonNullElementSchema, elementType, model, new ParentValueContainer() {
           @Override
-          @SuppressWarnings("unchecked")
-          void add(Object value) {
-            ElementConverter.this.element = (T) value;
+          public void add(Object value) {
+            ElementConverter.this.element = value;
           }
         });
       }
@@ -576,7 +423,7 @@ class AvroIndexedRecordConverter<T extends IndexedRecord> extends GroupConverter
     }
   }
 
-  static final class AvroUnionConverter<T> extends GroupConverter {
+  static final class AvroUnionConverter extends GroupConverter {
 
     private final ParentValueContainer parent;
     private final Converter[] memberConverters;
@@ -595,7 +442,7 @@ class AvroIndexedRecordConverter<T extends IndexedRecord> extends GroupConverter
           Type memberType = parquetGroup.getType(parquetIndex);
           memberConverters[parquetIndex] = newConverter(memberSchema, memberType, model, new ParentValueContainer() {
             @Override
-            void add(Object value) {
+            public void add(Object value) {
               Preconditions.checkArgument(memberValue==null, "Union is resolving to more than one type");
               memberValue = value;
             }
@@ -671,7 +518,7 @@ class AvroIndexedRecordConverter<T extends IndexedRecord> extends GroupConverter
         valueConverter = newConverter(nonNullValueSchema, valueType, model, new ParentValueContainer() {
           @Override
           @SuppressWarnings("unchecked")
-          void add(Object value) {
+          public void add(Object value) {
             MapKeyValueConverter.this.value = (V) value;
           }
         });
