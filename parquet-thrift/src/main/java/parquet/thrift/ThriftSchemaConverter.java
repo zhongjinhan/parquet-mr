@@ -59,13 +59,11 @@ public class ThriftSchemaConverter {
     return convert(toStructType(thriftClass));
   }
 
-  public MessageType convert(StructType thriftClass) {
-    ThriftSchemaConvertVisitor visitor = new ThriftSchemaConvertVisitor(fieldProjectionFilter);
-    thriftClass.accept(visitor);
+  public MessageType convert(StructType struct) {
+    MessageType messageType = ThriftSchemaConvertVisitor.convert(struct, fieldProjectionFilter);
     // This introduces a behavior change that is not backported, PARQUET-162
     // fieldProjectionFilter.assertNoUnmatchedPatterns();
-    MessageType convertedMessageType = visitor.getConvertedMessageType();
-    return convertedMessageType;
+    return messageType;
   }
 
   /**
@@ -111,8 +109,7 @@ public class ThriftSchemaConverter {
   private static StructType toStructType(TStructDescriptor struct) {
     List<Field> fields = struct.getFields();
     List<ThriftField> children = new ArrayList<ThriftField>(fields.size());
-    for (int i = 0; i < fields.size(); i++) {
-      Field field = fields.get(i);
+    for (Field field : fields) {
       Requirement req =
           field.getFieldMetaData() == null ?
               Requirement.OPTIONAL :
