@@ -35,6 +35,11 @@ import java.util.Set;
 import parquet.schema.PrimitiveType;
 import parquet.schema.PrimitiveType.PrimitiveTypeName;
 import parquet.schema.Type;
+import parquet.schema.GroupType;
+import parquet.schema.OriginalType;
+import parquet.schema.PrimitiveType;
+import parquet.schema.Type;
+import parquet.schema.Types;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 import org.apache.pig.impl.util.Utils;
 import org.junit.Ignore;
@@ -78,6 +83,23 @@ public class TestPigSchemaConverter {
   @Test
   public void testMapOfList() throws Exception {
     testPigConversion("a:map[{bag: (a:int)}]");
+  }
+
+  @Test
+  public void testListsOfPrimitive() throws Exception {
+    for (Type.Repetition repetition : Type.Repetition.values()) {
+      for (Type.Repetition valueRepetition : Type.Repetition.values()) {
+        for (PrimitiveType.PrimitiveTypeName primitiveTypeName : PrimitiveType.PrimitiveTypeName.values()) {
+          if (primitiveTypeName != PrimitiveType.PrimitiveTypeName.INT96) { // INT96 is NYI
+            Types.PrimitiveBuilder<PrimitiveType> value = Types.primitive(primitiveTypeName, valueRepetition);
+            if (primitiveTypeName == PrimitiveType.PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY)
+              value.length(1);
+            GroupType type = Types.buildGroup(repetition).addField(value.named("b")).as(OriginalType.LIST).named("a");
+            pigSchemaConverter.convertField(type); // no exceptions, please
+          }
+        }
+      }
+    }
   }
 
   private void testConversion(String pigSchemaString, String schemaString) throws Exception {
@@ -184,6 +206,17 @@ public class TestPigSchemaConverter {
         "    }\n" +
         "  }\n" +
         "}\n");
+  }
+
+  @Test
+  public void testListOfPrimitiveIsABag() throws Exception {
+    testFixedConversion(
+        "message pig_schema {\n" +
+        "  optional group a (LIST) {\n" +
+        "    repeated binary b (UTF8);\n" +
+        "  }\n" +
+        "}\n",
+        "a:{" + PigSchemaConverter.ARRAY_VALUE_NAME + ":(b: chararray)}");
   }
   
   private void testFixedConversion(String schemaString, String pigSchemaString)
