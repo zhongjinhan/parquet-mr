@@ -19,7 +19,7 @@
 package parquet.format.converter;
 
 import static java.util.Collections.emptyList;
-import static org.apache.parquet.schema.MessageTypeParser.parseMessageType;
+import static parquet.schema.MessageTypeParser.parseMessageType;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static parquet.format.CompressionCodec.UNCOMPRESSED;
@@ -42,12 +42,12 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.parquet.column.statistics.BinaryStatistics;
-import org.apache.parquet.hadoop.metadata.BlockMetaData;
-import org.apache.parquet.hadoop.metadata.ColumnChunkMetaData;
-import org.apache.parquet.hadoop.metadata.ColumnPath;
-import org.apache.parquet.hadoop.metadata.CompressionCodecName;
-import org.apache.parquet.hadoop.metadata.ParquetMetadata;
+import parquet.column.statistics.BinaryStatistics;
+import parquet.hadoop.metadata.BlockMetaData;
+import parquet.hadoop.metadata.ColumnChunkMetaData;
+import parquet.hadoop.metadata.ColumnPath;
+import parquet.hadoop.metadata.CompressionCodecName;
+import parquet.hadoop.metadata.ParquetMetadata;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -264,7 +264,7 @@ public class TestParquetMetadataConverter {
   @Test
   public void testNullFieldMetadataDebugLogging() throws NoSuchFieldException, IllegalAccessException, IOException {
     MessageType schema = parseMessageType("message test { optional binary some_null_field; }");
-    org.apache.parquet.hadoop.metadata.FileMetaData fileMetaData = new org.apache.parquet.hadoop.metadata.FileMetaData(schema, new HashMap<String, String>(), null);
+    parquet.hadoop.metadata.FileMetaData fileMetaData = new parquet.hadoop.metadata.FileMetaData(schema, new HashMap<String, String>(), null);
     List<BlockMetaData> blockMetaDataList = new ArrayList<BlockMetaData>();
     BlockMetaData blockMetaData = new BlockMetaData();
     blockMetaData.addColumn(createColumnChunkMetaData());
