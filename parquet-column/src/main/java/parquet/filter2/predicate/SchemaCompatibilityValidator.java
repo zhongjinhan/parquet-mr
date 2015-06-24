@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import parquet.column.ColumnDescriptor;
-import parquet.hadoop.metadata.ColumnPath;
 import parquet.filter2.predicate.Operators.And;
 import parquet.filter2.predicate.Operators.Column;
 import parquet.filter2.predicate.Operators.ColumnFilterPredicate;
@@ -36,8 +35,8 @@ import parquet.filter2.predicate.Operators.Not;
 import parquet.filter2.predicate.Operators.NotEq;
 import parquet.filter2.predicate.Operators.Or;
 import parquet.filter2.predicate.Operators.UserDefined;
+import parquet.hadoop.metadata.ColumnPath;
 import parquet.schema.MessageType;
-import parquet.schema.OriginalType;
 
 import static parquet.Preconditions.checkArgument;
 import static parquet.Preconditions.checkNotNull;
@@ -73,19 +72,11 @@ public class SchemaCompatibilityValidator implements FilterPredicate.Visitor<Voi
   // we are validating that what the user provided agrees with these.
   private final Map<ColumnPath, ColumnDescriptor> columnsAccordingToSchema = new HashMap<ColumnPath, ColumnDescriptor>();
 
-  // the original type of a column, keyed by path
-  private final Map<ColumnPath, OriginalType> originalTypes = new HashMap<ColumnPath, OriginalType>();
-
   private SchemaCompatibilityValidator(MessageType schema) {
 
     for (ColumnDescriptor cd : schema.getColumns()) {
       ColumnPath columnPath = ColumnPath.get(cd.getPath());
       columnsAccordingToSchema.put(columnPath, cd);
-
-      OriginalType ot = schema.getType(cd.getPath()).getOriginalType();
-      if (ot != null) {
-        originalTypes.put(columnPath, ot);
-      }
     }
   }
 
@@ -182,7 +173,7 @@ public class SchemaCompatibilityValidator implements FilterPredicate.Visitor<Voi
           + "Column " + path.toDotString() + " is repeated.");
     }
 
-    ValidTypeMap.assertTypeValid(column, descriptor.getType(), originalTypes.get(path));
+    ValidTypeMap.assertTypeValid(column, descriptor.getType());
   }
 
   private ColumnDescriptor getColumnDescriptor(ColumnPath columnPath) {
