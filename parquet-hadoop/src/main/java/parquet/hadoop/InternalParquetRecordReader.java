@@ -38,12 +38,13 @@ import parquet.filter2.compat.FilterCompat.Filter;
 import parquet.hadoop.api.InitContext;
 import parquet.hadoop.api.ReadSupport;
 import parquet.hadoop.metadata.BlockMetaData;
+import parquet.hadoop.metadata.FileMetaData;
 import parquet.hadoop.util.counters.BenchmarkCounter;
 import parquet.io.ColumnIOFactory;
 import parquet.io.MessageColumnIO;
 import parquet.io.ParquetDecodingException;
-import parquet.io.api.RecordMaterializer.RecordMaterializationException;
 import parquet.io.api.RecordMaterializer;
+import parquet.io.api.RecordMaterializer.RecordMaterializationException;
 import parquet.schema.GroupType;
 import parquet.schema.MessageType;
 import parquet.schema.Type;
@@ -161,10 +162,11 @@ class InternalParquetRecordReader<T> {
   }
 
   public void initialize(MessageType fileSchema,
-      Map<String, String> fileMetadata,
+      FileMetaData parquetFileMetadata,
       Path file, List<BlockMetaData> blocks, Configuration configuration)
       throws IOException {
     // initialize a ReadContext for this file
+    Map<String, String> fileMetadata = parquetFileMetadata.getKeyValueMetaData();
     ReadSupport.ReadContext readContext = readSupport.init(new InitContext(
         configuration, toSetMultiMap(fileMetadata), fileSchema));
     this.requestedSchema = readContext.getRequestedSchema();
@@ -174,7 +176,7 @@ class InternalParquetRecordReader<T> {
     this.recordConverter = readSupport.prepareForRead(
         configuration, fileMetadata, fileSchema, readContext);
     List<ColumnDescriptor> columns = requestedSchema.getColumns();
-    reader = new ParquetFileReader(configuration, file, blocks, columns);
+    reader = new ParquetFileReader(configuration, parquetFileMetadata, file, blocks, columns);
     for (BlockMetaData block : blocks) {
       total += block.getRowCount();
     }
