@@ -67,6 +67,8 @@ import parquet.schema.PrimitiveType.PrimitiveTypeName;
 public class ParquetFileWriter {
   private static final Log LOG = Log.getLog(ParquetFileWriter.class);
 
+  private static ParquetMetadataConverter metadataConverter = new ParquetMetadataConverter();
+
   public static final String PARQUET_METADATA_FILE = "_metadata";
   public static final String PARQUET_COMMON_METADATA_FILE = "_common_metadata";
   public static final byte[] MAGIC = "PAR1".getBytes(Charset.forName("ASCII"));
@@ -303,7 +305,7 @@ public class ParquetFileWriter {
     currentChunkDictionaryPageOffset = out.getPos();
     int uncompressedSize = dictionaryPage.getUncompressedSize();
     int compressedPageSize = (int)dictionaryPage.getBytes().size(); // TODO: fix casts
-    ParquetMetadataConverter.writeDictionaryPageHeader(
+    metadataConverter.writeDictionaryPageHeader(
         uncompressedSize,
         compressedPageSize,
         dictionaryPage.getDictionarySize(),
@@ -338,7 +340,7 @@ public class ParquetFileWriter {
     long beforeHeader = out.getPos();
     if (DEBUG) LOG.debug(beforeHeader + ": write data page: " + valueCount + " values");
     int compressedPageSize = (int)bytes.size();
-    ParquetMetadataConverter.writeDataPageHeader(
+    metadataConverter.writeDataPageHeader(
         uncompressedPageSize, compressedPageSize,
         valueCount,
         rlEncoding,
@@ -375,7 +377,7 @@ public class ParquetFileWriter {
     long beforeHeader = out.getPos();
     if (DEBUG) LOG.debug(beforeHeader + ": write data page: " + valueCount + " values");
     int compressedPageSize = (int)bytes.size();
-    ParquetMetadataConverter.writeDataPageHeader(
+    metadataConverter.writeDataPageHeader(
         uncompressedPageSize, compressedPageSize,
         valueCount,
         statistics,
@@ -468,7 +470,7 @@ public class ParquetFileWriter {
 
   private static void serializeFooter(ParquetMetadata footer, FSDataOutputStream out) throws IOException {
     long footerIndex = out.getPos();
-    parquet.format.FileMetaData parquetMetadata = ParquetMetadataConverter.toParquetMetadata(CURRENT_VERSION, footer);
+    parquet.format.FileMetaData parquetMetadata = metadataConverter.toParquetMetadata(CURRENT_VERSION, footer);
     writeFileMetaData(parquetMetadata, out);
     if (DEBUG) LOG.debug(out.getPos() + ": footer length = " + (out.getPos() - footerIndex));
     BytesUtils.writeIntLittleEndian(out, (int)(out.getPos() - footerIndex));
