@@ -21,7 +21,7 @@ package parquet.avro;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.specific.SpecificData;
 
-class SpecificDataSupplier implements AvroDataSupplier {
+public class SpecificDataSupplier implements AvroDataSupplier {
   @Override
   public GenericData get() {
     return SpecificData.get();
