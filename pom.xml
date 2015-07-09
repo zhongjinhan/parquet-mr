@@ -287,10 +287,15 @@
                      <exclude>parquet/column/values/**</exclude>
                      <exclude>parquet/column/**</exclude>
                      <exclude>parquet/hadoop/ParquetInputSplit</exclude>
-                     <!- temporary rules ->
-                     <exclude>parquet/io/api/Binary</exclude> <!- false positive, added interfaces ->
-                     <exclude>parquet/hadoop/metadata/Canonicalizer</exclude> <!- moved to different module ->
-                     <exclude>parquet/hadoop/metadata/ColumnPath</exclude> <!- moved to different module, added methods ->
+                     <exclude>shaded/**</exclude> <!- shaded by parquet ->
+                     <!- temporary exclusions for false-positives ->
+                     <exclude>org/apache/parquet/Version</exclude>
+                     <exclude>org/apache/parquet/schema/**</exclude> <!- methods moved to new superclass ->
+                     <exclude>org/apache/parquet/thrift/ThriftSchemaConvertVisitor</exclude> <!- not public ->
+                     <exclude>org/apache/parquet/avro/AvroParquetReader</exclude> <!- returns subclass of old return class ->
+                     <exclude>org/apache/parquet/avro/SpecificDataSupplier</exclude> <!- made public ->
+                     <exclude>org/apache/parquet/io/ColumnIOFactory$ColumnIOCreatorVisitor</exclude> <!- removed non-API class ->
+                     <exclude>org/apache/parquet/io/ColumnIOFactory/**</exclude> <!- removed non-API class and methods->
                    </excludes>
                  </requireBackwardCompatibility>
                </rules>

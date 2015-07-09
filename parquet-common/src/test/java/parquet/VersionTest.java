@@ -23,8 +23,6 @@ import parquet.VersionParser.VersionParseException;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -52,8 +50,8 @@ public class VersionTest {
   public void testFullVersion() throws Exception {
     ParsedVersion version = VersionParser.parse(Version.FULL_VERSION);
 
-    assertVersionValid(version.semver);
-    assertEquals(Version.VERSION_NUMBER, version.semver);
+    assertVersionValid(version.version);
+    assertEquals(Version.VERSION_NUMBER, version.version);
     assertEquals("parquet-mr", version.application);
   }
   
