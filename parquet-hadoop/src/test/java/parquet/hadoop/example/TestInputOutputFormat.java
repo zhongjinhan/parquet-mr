@@ -25,15 +25,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -44,14 +41,16 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
-import org.apache.parquet.Strings;
-import org.apache.parquet.filter2.predicate.FilterApi;
+import parquet.Files;
+import parquet.Strings;
+import parquet.filter2.predicate.FilterApi;
 import org.junit.Before;
 import org.junit.Test;
 
 import parquet.Log;
 import parquet.example.data.Group;
 import parquet.example.data.simple.SimpleGroupFactory;
+import parquet.hadoop.ParquetInputFormat;
 import parquet.hadoop.api.ReadSupport;
 import parquet.hadoop.metadata.CompressionCodecName;
 import parquet.hadoop.util.ContextUtil;
@@ -59,6 +58,7 @@ import parquet.schema.MessageTypeParser;
 
 public class TestInputOutputFormat {
   private static final Log LOG = Log.getLog(TestInputOutputFormat.class);
+  private static final Charset UTF_8 = Charset.forName("UTF-8");
   final Path parquetPath = new Path("target/test/example/TestInputOutputFormat/parquet");
   final Path inputPath = new Path("src/test/java/parquet/hadoop/example/TestInputOutputFormat.java");
   final Path outputPath = new Path("target/test/example/TestInputOutputFormat/out");
@@ -213,7 +213,7 @@ public class TestInputOutputFormat {
       put(ParquetInputFormat.FILTER_PREDICATE, fpString);
     }});
 
-    List<String> lines = Files.readAllLines(new File(outputPath.toString(), "part-m-00000").toPath(), Charset.forName("UTF-8"));
+    List<String> lines = Files.readAllLines(new File(outputPath.toString(), "part-m-00000"), UTF_8);
     assertTrue(lines.isEmpty());
   }
 
@@ -231,7 +231,7 @@ public class TestInputOutputFormat {
       put(ParquetInputFormat.FILTER_PREDICATE, fpString);
     }});
 
-    List<String> expected = Files.readAllLines(new File(inputPath.toString()).toPath(), Charset.forName("UTF-8"));
+    List<String> expected = Files.readAllLines(new File(inputPath.toString()), UTF_8);
 
     // grab the lines that contain the first 500 characters (including the rest of the line past 500 characters)
     int size = 0;
@@ -248,7 +248,7 @@ public class TestInputOutputFormat {
     }
 
     // put the output back into it's original format (remove the character counts / tabs)
-    List<String> found = Files.readAllLines(new File(outputPath.toString(), "part-m-00000").toPath(), Charset.forName("UTF-8"));
+    List<String> found = Files.readAllLines(new File(outputPath.toString(), "part-m-00000"), UTF_8);
     StringBuilder sbFound = new StringBuilder();
     for (String line : found) {
       sbFound.append(line.split("\t", -1)[1]);
