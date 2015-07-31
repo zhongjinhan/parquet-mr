@@ -59,8 +59,14 @@ public class ThriftSchemaConverter {
     return convert(toStructType(thriftClass));
   }
 
+  /**
+   * struct is assumed to contain valid structOrUnionType metadata when used with this method.
+   * This method may throw if structOrUnionType is unknown.
+   *
+   * Use convertWithoutProjection below to convert a StructType to MessageType
+   */
   public MessageType convert(StructType struct) {
-    MessageType messageType = ThriftSchemaConvertVisitor.convert(struct, fieldProjectionFilter);
+    MessageType messageType = ThriftSchemaConvertVisitor.convert(struct, fieldProjectionFilter, true);
     // This introduces a behavior change that is not backported, PARQUET-162
     // fieldProjectionFilter.assertNoUnmatchedPatterns();
     return messageType;
@@ -95,6 +101,14 @@ public class ThriftSchemaConverter {
       return fieldNames.contains(repeatedType.asGroupType().getFieldName(0));
     }
     return false;
+  }
+
+  /**
+   * struct is not required to have known structOrUnionType, which is useful
+   * for converting a StructType from an (older) file schema to a MessageType
+   */
+  public static MessageType convertWithoutProjection(StructType struct) {
+    return ThriftSchemaConvertVisitor.convert(struct, FieldProjectionFilter.ALL_COLUMNS, false);
   }
 
   public static <T extends TBase<?,?>> StructOrUnionType structOrUnionType(Class<T> klass) {

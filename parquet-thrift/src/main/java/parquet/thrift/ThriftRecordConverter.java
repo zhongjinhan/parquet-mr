@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TField;
@@ -73,7 +72,7 @@ public class ThriftRecordConverter<T> extends RecordMaterializer<T> {
       "parquet.thrift.ignore-null-elements";
   private static final boolean IGNORE_NULL_LIST_ELEMENTS_DEFAULT = false;
 
-  final ParquetProtocol readFieldEnd = new ParquetProtocol("readFieldEnd()") {
+  final static ParquetProtocol readFieldEnd = new ParquetProtocol("readFieldEnd()") {
     @Override
     public void readFieldEnd() throws TException {
     }
@@ -86,7 +85,7 @@ public class ThriftRecordConverter<T> extends RecordMaterializer<T> {
    * @author Julien Le Dem
    *
    */
-  class PrimitiveFieldHandler extends PrimitiveConverter {
+  static class PrimitiveFieldHandler extends PrimitiveConverter {
 
     private final PrimitiveConverter delegate;
     private final List<TProtocol> events;
@@ -165,7 +164,7 @@ public class ThriftRecordConverter<T> extends RecordMaterializer<T> {
    * @author Julien Le Dem
    *
    */
-  class GroupFieldhandler extends GroupConverter {
+  static class GroupFieldhandler extends GroupConverter {
 
     private final GroupConverter delegate;
     private final List<TProtocol> events;
@@ -214,7 +213,7 @@ public class ThriftRecordConverter<T> extends RecordMaterializer<T> {
    * @author Julien Le Dem
    *
    */
-  class GroupCounter extends GroupConverter implements Counter {
+  static class GroupCounter extends GroupConverter implements Counter {
 
     private final GroupConverter delegate;
     private int count;
@@ -257,7 +256,7 @@ public class ThriftRecordConverter<T> extends RecordMaterializer<T> {
    * @author Julien Le Dem
    *
    */
-  class PrimitiveCounter extends PrimitiveConverter implements Counter {
+  static class PrimitiveCounter extends PrimitiveConverter implements Counter {
 
     private final PrimitiveConverter delegate;
     private int count;
@@ -320,7 +319,7 @@ public class ThriftRecordConverter<T> extends RecordMaterializer<T> {
    * @author Julien Le Dem
    *
    */
-  class FieldPrimitiveConverter extends PrimitiveConverter {
+  static class FieldPrimitiveConverter extends PrimitiveConverter {
 
     private final List<TProtocol> events;
     private ThriftTypeID type;
@@ -411,7 +410,7 @@ public class ThriftRecordConverter<T> extends RecordMaterializer<T> {
    * @author Julien Le Dem
    *
    */
-  class FieldStringConverter extends PrimitiveConverter {
+  static class FieldStringConverter extends PrimitiveConverter {
 
     private final List<TProtocol> events;
 
@@ -440,14 +439,15 @@ public class ThriftRecordConverter<T> extends RecordMaterializer<T> {
    * @author Julien Le Dem
    *
    */
-  class FieldEnumConverter extends PrimitiveConverter {
+   static class FieldEnumConverter extends PrimitiveConverter {
 
     private final List<TProtocol> events;
-
-    private Map<Binary, Integer> enumLookup = new HashMap<Binary, Integer>();
+    private final Map<Binary, Integer> enumLookup = new HashMap<Binary, Integer>();
+    private final ThriftField field;
 
     public FieldEnumConverter(List<TProtocol> events, ThriftField field) {
       this.events = events;
+      this.field = field;
       final Iterable<EnumValue> values = ((EnumType)field.getType()).getValues();
       for (EnumValue enumValue : values) {
         enumLookup.put(Binary.fromString(enumValue.getName()), enumValue.getId());
@@ -456,7 +456,16 @@ public class ThriftRecordConverter<T> extends RecordMaterializer<T> {
 
     @Override
     public void addBinary(final Binary value) {
-      final int id = enumLookup.get(value);
+      final Integer id = enumLookup.get(value);
+
+      if (id == null) {
+        throw new ParquetDecodingException("Unrecognized enum value: "
+            + value.toStringUsingUTF8()
+            + " known values: "
+            + enumLookup
+            + " in " + this.field);
+      }
+
       events.add(new ParquetProtocol("readI32() enum") {
         @Override
         public int readI32() throws TException {
@@ -883,7 +892,7 @@ public class ThriftRecordConverter<T> extends RecordMaterializer<T> {
           IGNORE_NULL_LIST_ELEMENTS,
           IGNORE_NULL_LIST_ELEMENTS_DEFAULT);
     }
-    MessageType fullSchema = new ThriftSchemaConverter().convert(thriftType);
+    MessageType fullSchema = ThriftSchemaConverter.convertWithoutProjection(thriftType);
     missingRequiredFieldsInProjection = hasMissingRequiredFieldInGroupType(requestedParquetSchema, fullSchema);
     this.structConverter = new StructConverter(rootEvents, requestedParquetSchema, new ThriftField(name, (short)0, Requirement.REQUIRED, thriftType));
   }

@@ -112,9 +112,8 @@ public class ThriftBytesWriteSupport extends WriteSupport<BytesWritable> {
     } else {
       thriftClass = ThriftWriteSupport.getThriftClass(configuration);
     }
-    ThriftSchemaConverter thriftSchemaConverter = new ThriftSchemaConverter();
-    this.thriftStruct = thriftSchemaConverter.toStructType(thriftClass);
-    this.schema = thriftSchemaConverter.convert(thriftClass);
+    this.thriftStruct = ThriftSchemaConverter.toStructType(thriftClass);
+    this.schema = ThriftSchemaConverter.convertWithoutProjection(thriftStruct);
     if (buffered) {
       readToWrite = new BufferedProtocolReadToWrite(thriftStruct, errorHandler);
     } else {
