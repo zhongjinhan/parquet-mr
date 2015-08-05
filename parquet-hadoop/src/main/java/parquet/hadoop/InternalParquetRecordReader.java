@@ -61,6 +61,7 @@ class InternalParquetRecordReader<T> {
 
   private MessageType requestedSchema;
   private MessageType fileSchema;
+  private MessageColumnIO columnIO;
   private int columnCount;
   private final ReadSupport<T> readSupport;
 
@@ -134,7 +135,6 @@ class InternalParquetRecordReader<T> {
       BenchmarkCounter.incrementTime(timeSpentReading);
       if (Log.INFO) LOG.info("block read in memory in " + timeSpentReading + " ms. row count = " + pages.getRowCount());
       if (Log.DEBUG) LOG.debug("initializing Record assembly with requested schema " + requestedSchema);
-      MessageColumnIO columnIO = columnIOFactory.getColumnIO(requestedSchema, fileSchema);
       recordReader = columnIO.getRecordReader(pages, recordConverter, filter);
       startedAssemblingCurrentBlockAt = System.currentTimeMillis();
       totalCountLoadedSoFar += pages.getRowCount();
@@ -172,6 +172,7 @@ class InternalParquetRecordReader<T> {
     this.columnIOFactory = new ColumnIOFactory(parquetFileMetadata.getCreatedBy());
     this.requestedSchema = readContext.getRequestedSchema();
     this.fileSchema = fileSchema;
+    this.columnIO = columnIOFactory.getColumnIO(requestedSchema, fileSchema);
     this.file = file;
     this.columnCount = requestedSchema.getPaths().size();
     this.recordConverter = readSupport.prepareForRead(
