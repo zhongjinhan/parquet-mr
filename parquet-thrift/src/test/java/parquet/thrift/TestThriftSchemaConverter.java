@@ -23,6 +23,7 @@ import static org.junit.Assert.fail;
 import static parquet.schema.MessageTypeParser.parseMessageType;
 
 import org.apache.thrift.TBase;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import parquet.schema.MessageType;
@@ -204,6 +205,7 @@ public class TestThriftSchemaConverter {
   }
 
   @Test
+  @Ignore("This tests a behavior change that is not backported, PARQUET-162")
   public void testThrowWhenProjectionFilterMatchesNothing() {
     shouldThrowWhenProjectionFilterMatchesNothing("non_existing", "non_existing", TestStructInMap.class);
     shouldThrowWhenProjectionFilterMatchesNothing("name;non_existing", "non_existing", TestStructInMap.class);
