@@ -282,10 +282,10 @@
                      <exclude>parquet/column/values/**</exclude>
                      <exclude>parquet/column/**</exclude>
                      <exclude>parquet/hadoop/ParquetInputSplit</exclude>
-                     <!-- temporary rules -->
-                     <exclude>parquet/io/api/Binary</exclude> <!-- false positive, added interfaces -->
-                     <exclude>parquet/hadoop/metadata/Canonicalizer</exclude> <!-- moved to different module -->
-                     <exclude>parquet/hadoop/metadata/ColumnPath</exclude> <!-- moved to different module, added methods -->
+                     <!- temporary rules ->
+                     <exclude>parquet/io/api/Binary</exclude> <!- false positive, added interfaces ->
+                     <exclude>parquet/hadoop/metadata/Canonicalizer</exclude> <!- moved to different module ->
+                     <exclude>parquet/hadoop/metadata/ColumnPath</exclude> <!- moved to different module, added methods ->
                    </excludes>
                  </requireBackwardCompatibility>
                </rules>
