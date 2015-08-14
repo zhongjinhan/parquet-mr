@@ -83,6 +83,19 @@ public class ValidTypeMap {
    * @param foundColumn the column as declared by the user
    * @param primitiveType the primitive type according to the schema
    */
+  public static <T extends Comparable<T>> void assertTypeValid(Column<T> foundColumn, PrimitiveTypeName primitiveType, OriginalType ignored) {
+    assertTypeValid(foundColumn, primitiveType);
+  }
+
+  /**
+   * Asserts that foundColumn was declared as a type that is compatible with the type for this column found
+   * in the schema of the parquet file.
+   *
+   * @throws java.lang.IllegalArgumentException if the types do not align
+   *
+   * @param foundColumn the column as declared by the user
+   * @param primitiveType the primitive type according to the schema
+   */
   public static <T extends Comparable<T>> void assertTypeValid(Column<T> foundColumn, PrimitiveTypeName primitiveType) {
     Class<T> foundColumnType = foundColumn.getColumnType();
     ColumnPath columnPath = foundColumn.getColumnPath();
