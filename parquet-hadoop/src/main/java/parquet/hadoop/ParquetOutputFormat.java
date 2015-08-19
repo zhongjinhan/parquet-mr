@@ -116,7 +116,7 @@ public class ParquetOutputFormat<T> extends FileOutputFormat<Void, T> {
   public static final String MAX_PADDING_BYTES    = "parquet.writer.max-padding";
 
   // default to no padding for now
-  private static final int DEFAULT_MAX_PADDING_SIZE = 0;
+  private static final int DEFAULT_MAX_PADDING_SIZE = 8*1024*1024; // 8MB
 
   public static void setWriteSupportClass(Job job,  Class<?> writeSupportClass) {
     getConfiguration(job).set(WRITE_SUPPORT_CLASS, writeSupportClass.getName());
