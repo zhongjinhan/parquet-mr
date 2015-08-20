@@ -159,7 +159,9 @@
 
   <modules>
     <module>parquet-avro</module>
+    <!-- Added in backports
     <module>parquet-benchmarks</module>
+    -->
     <module>parquet-cascading</module>
     <module>parquet-column</module>
     <module>parquet-common</module>
