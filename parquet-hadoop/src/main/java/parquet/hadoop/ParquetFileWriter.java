@@ -57,6 +57,7 @@ import parquet.hadoop.metadata.ParquetMetadata;
 import parquet.io.ParquetEncodingException;
 import parquet.schema.MessageType;
 import parquet.schema.PrimitiveType.PrimitiveTypeName;
+import parquet.schema.TypeUtil;
 
 /**
  * Internal implementation of the Parquet file writer as a block container
@@ -205,6 +206,7 @@ public class ParquetFileWriter {
                            Path file, Mode mode, long rowGroupSize,
                            int maxPaddingSize)
       throws IOException {
+    TypeUtil.checkValidWriteSchema(schema);
     this.schema = schema;
     FileSystem fs = file.getFileSystem(configuration);
     boolean overwriteFlag = (mode == Mode.OVERWRITE);
