@@ -137,12 +137,12 @@
     <jackson.groupId>org.codehaus.jackson</jackson.groupId>
     <jackson.version>${cdh.jackson.version}</jackson.version>
     <jackson.package>org.codehaus.jackson</jackson.package>
-    <shade.prefix>parquet</shade.prefix>
+    <shade.prefix>shaded.parquet</shade.prefix>
     <hadoop.version>${cdh.hadoop.version}</hadoop.version>
     <cascading.version>2.5.3</cascading.version>
     <parquet.format.version>${cdh.parquet-format.version}</parquet.format.version>
     <log4j.version>1.2.17</log4j.version>
-    <previous.version>1.5.0</previous.version>
+    <previous.version>1.5.0-cdh5.2.0</previous.version>
     <thrift.executable>thrift</thrift.executable>
     <protoc.executable>protoc</protoc.executable>
     <pig.version>${cdh.pig.version}</pig.version>
@@ -155,6 +155,7 @@
     <scala.binary.version>2.10</scala.binary.version>
     <fastutil.version>6.3</fastutil.version>
     <semver.api.version>0.9.33</semver.api.version>
+    <compat.skip>false</compat.skip>
   </properties>
 
   <modules>
@@ -265,45 +266,6 @@
               <version>0.9.27</version>
             </dependency>
           </dependencies>
-          <!--
-         <executions>
-           <execution>
-             <id>check</id>
-             <phase>verify</phase>
-             <goals>
-               <goal>enforce</goal>
-             </goals>
-             <configuration>
-               <rules>
-                 <requireBackwardCompatibility implementation="org.semver.enforcer.RequireSemanticVersioningConformance">
-                   <dumpDetails>true</dumpDetails>
-                   <previousVersion>${previous.version}</previousVersion>
-                   <excludes>
-                     <exclude>parquet/hadoop/thrift/**</exclude>
-                     <exclude>parquet/thrift/projection/**</exclude>
-                     <exclude>parquet/thrift/ThriftSchemaConverter</exclude>
-                     <exclude>parquet/filter2/**</exclude>
-                     <exclude>parquet/org/**</exclude>
-                     <! one time exclusions that should be removed >
-                     <exclude>parquet/io/api/Binary</exclude>
-                     <exclude>parquet/column/values/**</exclude>
-                     <exclude>parquet/column/**</exclude>
-                     <exclude>parquet/hadoop/ParquetInputSplit</exclude>
-                     <exclude>shaded/**</exclude> <!- shaded by parquet ->
-                     <!- temporary exclusions for false-positives ->
-                     <exclude>org/apache/parquet/Version</exclude>
-                     <exclude>org/apache/parquet/schema/**</exclude> <!- methods moved to new superclass ->
-                     <exclude>org/apache/parquet/thrift/ThriftSchemaConvertVisitor</exclude> <!- not public ->
-                     <exclude>org/apache/parquet/avro/AvroParquetReader</exclude> <!- returns subclass of old return class ->
-                     <exclude>org/apache/parquet/avro/SpecificDataSupplier</exclude> <!- made public ->
-                     <exclude>org/apache/parquet/io/ColumnIOFactory$ColumnIOCreatorVisitor</exclude> <!- removed non-API class ->
-                     <exclude>org/apache/parquet/io/ColumnIOFactory/**</exclude> <!- removed non-API class and methods->
-                   </excludes>
-                 </requireBackwardCompatibility>
-               </rules>
-             </configuration>
-           </execution>
-         </executions>-->
           <configuration>
             <rules>
               <requireJavaVersion>
@@ -332,6 +294,74 @@
                 <goal>enforce</goal>
               </goals>
               <phase>pre-site</phase>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>com.github.siom79.japicmp</groupId>
+          <artifactId>japicmp-maven-plugin</artifactId>
+          <version>0.5.3</version>
+          <configuration>
+            <oldVersion>
+              <dependency>
+                <groupId>com.twitter</groupId>
+                <artifactId>${project.artifactId}</artifactId>
+                <version>${previous.version}</version>
+              </dependency>
+            </oldVersion>
+            <newVersion>
+              <file>
+                <path>${project.build.directory}/${project.artifactId}-${project.version}.jar</path>
+              </file>
+            </newVersion>
+            <parameter>
+              <onlyModified>true</onlyModified>
+              <includes>
+                <include>parquet</include>
+              </includes>
+              <excludes>
+                <exclude>parquet.column</exclude>
+                <exclude>parquet.filter2</exclude>
+                <exclude>parquet.hadoop.metadata.ColumnPath</exclude> <!-- moved to parquet-common -->
+                <exclude>parquet.hadoop.metadata.Canonicalizer</exclude> <!-- moved to parquet-common -->
+                <exclude>parquet.hadoop.ParquetInputSplit</exclude>
+                <exclude>parquet.hadoop.ParquetInputFormat#getReadSupport(org.apache.hadoop.conf.Configuration)</exclude> <!-- not public API -->
+                <exclude>parquet.io.api.Binary#Binary()</exclude>
+                <exclude>parquet.schema.Types\$PrimitiveBuilder</exclude> <!-- methods moved to superclass -->
+                <exclude>parquet.schema.Types\$GroupBuilder</exclude> <!-- methods moved to superclass -->
+                <exclude>parquet.io.ColumnIOFactory\$ColumnIOCreatorVisitor</exclude> <!-- not public API -->
+                <exclude>parquet.thrift.projection</exclude>
+                <exclude>parquet.thrift.ThriftSchemaConverter#toStructType(java.lang.Class)</exclude> <!-- not public API -->
+                <exclude>parquet.thrift.ThriftSchemaConvertVisitor</exclude> <!-- not public API -->
+                <exclude>parquet.it.unimi.dsi</exclude> <!-- shaded fastutil from old shading pattern -->
+                <exclude>parquet.${jackson.package}</exclude> <!-- shaded jackson from old shading pattern-->
+                <exclude>shaded</exclude> <!-- current shading pattern -->
+              </excludes>
+              <!-- <accessModifier>public</accessModifier> -->
+              <breakBuildOnModifications>false</breakBuildOnModifications>
+              <breakBuildOnBinaryIncompatibleModifications>true</breakBuildOnBinaryIncompatibleModifications>
+              <onlyBinaryIncompatible>true</onlyBinaryIncompatible>
+              <includeSynthetic>false</includeSynthetic>
+              <ignoreMissingClasses>false</ignoreMissingClasses>
+              <skipPomModules>true</skipPomModules>
+            </parameter>
+            <dependencies>
+              <!--
+              <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-math3</artifactId>
+                <version>3.4</version>
+              </dependency>
+              -->
+            </dependencies>
+            <skip>${compat.skip}</skip>
+          </configuration>
+          <executions>
+            <execution>
+              <phase>verify</phase>
+              <goals>
+                <goal>cmp</goal>
+              </goals>
             </execution>
           </executions>
         </plugin>
