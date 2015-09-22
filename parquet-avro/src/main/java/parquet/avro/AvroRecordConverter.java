@@ -32,8 +32,10 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.reflect.ReflectData;
@@ -46,11 +48,11 @@ import parquet.avro.AvroConverters.FieldStringableConverter;
 import parquet.io.InvalidRecordException;
 import parquet.io.api.Converter;
 import parquet.io.api.GroupConverter;
-import parquet.io.api.PrimitiveConverter;
 import parquet.schema.GroupType;
 import parquet.schema.MessageType;
 import parquet.schema.Type;
 
+import static parquet.schema.Type.Repetition.REPEATED;
 import static parquet.schema.Type.Repetition.REQUIRED;
 
 /**
@@ -745,20 +747,22 @@ class AvroRecordConverter<T> extends AvroConverters.AvroGroupConverter {
    * @param elementSchema the expected Schema for list elements
    * @return {@code true} if the repeatedType is the element schema
    */
-  private static boolean isElementType(Type repeatedType, Schema elementSchema) {
+  static boolean isElementType(Type repeatedType, Schema elementSchema) {
     if (repeatedType.isPrimitive() ||
-        repeatedType.asGroupType().getFieldCount() > 1) {
+        repeatedType.asGroupType().getFieldCount() > 1 ||
+        repeatedType.asGroupType().getType(0).isRepetition(REPEATED)) {
       // The repeated type must be the element type because it is an invalid
-      // synthetic wrapper (must be a group with one field).
+      // synthetic wrapper. Must be a group with one optional or required field
       return true;
     } else if (elementSchema != null &&
-        elementSchema.getType() == Schema.Type.RECORD &&
-        elementSchema.getFields().size() == 1 &&
-        elementSchema.getFields().get(0).name().equals(
-            repeatedType.asGroupType().getFieldName(0))) {
+        elementSchema.getType() == Schema.Type.RECORD) {
+      Set<String> fieldNames = new HashSet<String>();
+      for (Schema.Field field : elementSchema.getFields()) {
+        fieldNames.add(field.name());
+      }
       // The repeated type must be the element type because it matches the
       // structure of the Avro element's schema.
-      return true;
+      return fieldNames.contains(repeatedType.asGroupType().getFieldName(0));
     }
     return false;
   }
