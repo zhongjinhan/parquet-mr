@@ -89,7 +89,7 @@ public class SemanticVersionTest {
     assertLessThan("1.5.0-cdh5.5.0", "1.5.0-cdh6.0.0");
     assertLessThan("1.5.0-cdh5.5.0", "1.5.0");
     // according to the semver spec, this is true :(
-    assertLessThan("1.5.0-cdh5.5.0", "1.5.0-cdh5.5.0");
+    assertLessThan("1.5.0-cdh5.5.0", "1.5.0-cdh5.5.0-SNAPSHOT");
   }
 
   @Test
