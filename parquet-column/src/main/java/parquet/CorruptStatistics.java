@@ -41,7 +41,7 @@ public class CorruptStatistics {
   // the bug involved writing invalid binary statistics, so stats written prior to this
   // fix must be ignored / assumed invalid
   private static final SemanticVersion PARQUET_251_FIXED_VERSION = new SemanticVersion(1, 8, 0);
-  private static final SemanticVersion CDH_5_PARQUET_251_FIXED_START = new SemanticVersion(1, 5, 0, null, "cdh5.5.0", null);
+  private static final SemanticVersion CDH_5_PARQUET_251_FIXED_START = new SemanticVersion(1, 5, 0, null, "cdh5.5.1", null);
   private static final SemanticVersion CDH_5_PARQUET_251_FIXED_END = new SemanticVersion(1, 5, 0);
 
   /**

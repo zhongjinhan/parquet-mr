@@ -82,14 +82,14 @@ public class SemanticVersionTest {
 
   @Test
   public void testDistributionVersions() throws Exception {
-    assertEqualTo("1.5.0-cdh5.5.0", "1.5.0-cdh5.5.0");
-    assertLessThan("1.5.0-cdh5.5.0", "1.5.0-cdh5.5.1");
-    assertLessThan("1.5.0-cdh5.5.0", "1.5.0-cdh5.5.1-SNAPSHOT");
-    assertLessThan("1.5.0-cdh5.5.0", "1.5.0-cdh5.6.0");
-    assertLessThan("1.5.0-cdh5.5.0", "1.5.0-cdh6.0.0");
-    assertLessThan("1.5.0-cdh5.5.0", "1.5.0");
+    assertEqualTo("1.5.0-cdh5.5.1", "1.5.0-cdh5.5.1");
+    assertLessThan("1.5.0-cdh5.5.1", "1.5.0-cdh5.5.1");
+    assertLessThan("1.5.0-cdh5.5.1", "1.5.0-cdh5.5.1-SNAPSHOT");
+    assertLessThan("1.5.0-cdh5.5.1", "1.5.0-cdh5.6.0");
+    assertLessThan("1.5.0-cdh5.5.1", "1.5.0-cdh6.0.0");
+    assertLessThan("1.5.0-cdh5.5.1", "1.5.0");
     // according to the semver spec, this is true :(
-    assertLessThan("1.5.0-cdh5.5.0", "1.5.0-cdh5.5.0-SNAPSHOT");
+    assertLessThan("1.5.0-cdh5.5.1", "1.5.0-cdh5.5.1-SNAPSHOT");
   }
 
   @Test
@@ -100,8 +100,8 @@ public class SemanticVersionTest {
         SemanticVersion.parse("1.8.0rc3-SNAPSHOT"));
     assertEquals(new SemanticVersion(1, 8, 0, null, "SNAPSHOT", null),
         SemanticVersion.parse("1.8.0-SNAPSHOT"));
-    assertEquals(new SemanticVersion(1, 5, 0, null, "cdh5.5.0", null),
-        SemanticVersion.parse("1.5.0-cdh5.5.0"));
+    assertEquals(new SemanticVersion(1, 5, 0, null, "cdh5.5.1", null),
+        SemanticVersion.parse("1.5.0-cdh5.5.1"));
   }
 
   private static void assertLessThan(String a, String b) throws SemanticVersion.SemanticVersionParseException {
