@@ -22,13 +22,13 @@
   <parent>
     <groupId>com.cloudera.cdh</groupId>
     <artifactId>cdh-root</artifactId>
-    <version>5.5.5-SNAPSHOT</version>
+    <version>5.5.4-SNAPSHOT</version>
     <relativePath></relativePath><!-- no parent resolution -->
   </parent>
 
   <groupId>com.twitter</groupId>
   <artifactId>parquet</artifactId>
-  <version>1.5.0-cdh5.5.5-SNAPSHOT</version>
+  <version>1.5.0-cdh5.5.4-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Apache Parquet MR</name>
