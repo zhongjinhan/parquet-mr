@@ -25,6 +25,10 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import parquet.bytes.BytesUtils;
@@ -196,25 +200,32 @@ abstract public class Binary implements Comparable<Binary>, Serializable {
 
   }
 
-  private static class FromStringBinary extends ByteArrayBackedBinary {
-    public FromStringBinary(String value) {
-      // reused is false, because we do not
-      // hold on to the underlying bytes,
-      // and nobody else has a handle to them
+  private static class FromStringBinary extends ByteBufferBackedBinary {
+    public FromStringBinary(CharSequence value) {
+      // reused is false, because we do not hold on to the buffer after
+      // conversion, and nobody else has a handle to it
       super(encodeUTF8(value), false);
-    }
-
-    private static byte[] encodeUTF8(String value) {
-      try {
-        return value.getBytes("UTF-8");
-      } catch (UnsupportedEncodingException e) {
-        throw new ParquetEncodingException("UTF-8 not supported.", e);
-      }
     }
 
     @Override
     public String toString() {
       return "Binary{\"" + toStringUsingUTF8() + "\"}";
+    }
+
+    private static final ThreadLocal<CharsetEncoder> ENCODER =
+        new ThreadLocal<CharsetEncoder>() {
+          @Override
+          protected CharsetEncoder initialValue() {
+            return StandardCharsets.UTF_8.newEncoder();
+          }
+        };
+
+    private static ByteBuffer encodeUTF8(CharSequence value) {
+      try {
+        return ENCODER.get().encode(CharBuffer.wrap(value));
+      } catch (CharacterCodingException e) {
+        throw new ParquetEncodingException("UTF-8 not supported.", e);
+      }
     }
   }
 
@@ -338,6 +349,15 @@ abstract public class Binary implements Comparable<Binary>, Serializable {
 
     public ByteBufferBackedBinary(ByteBuffer value, boolean isBackingBytesReused) {
       this.value = value;
+      this.offset = value.position();
+      this.length = value.remaining();
+      this.isBackingBytesReused = isBackingBytesReused;
+    }
+
+    public ByteBufferBackedBinary(ByteBuffer value, int offset, int length, boolean isBackingBytesReused) {
+      this.value = value;
+      this.offset = offset;
+      this.length = length;
       this.isBackingBytesReused = isBackingBytesReused;
     }
 
@@ -477,7 +497,12 @@ abstract public class Binary implements Comparable<Binary>, Serializable {
     return fromReusedByteBuffer(value); // Assume producer intends to reuse byte[]
   }
 
-  public static Binary fromString(final String value) {
+  public static Binary fromString(String value) {
+    // this method is for binary backward-compatibility
+    return fromString((CharSequence) value);
+  }
+
+  public static Binary fromString(CharSequence value) {
     return new FromStringBinary(value);
   }
 
