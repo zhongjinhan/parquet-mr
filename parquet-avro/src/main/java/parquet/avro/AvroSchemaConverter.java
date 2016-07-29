@@ -367,12 +367,8 @@ public class AvroSchemaConverter {
       return OriginalType.DATE;
     } else if (logicalType instanceof LogicalTypes.TimeMillis) {
       return OriginalType.TIME_MILLIS;
-    } else if (logicalType instanceof LogicalTypes.TimeMicros) {
-      return OriginalType.TIME_MICROS;
     } else if (logicalType instanceof LogicalTypes.TimestampMillis) {
       return OriginalType.TIMESTAMP_MILLIS;
-    } else if (logicalType instanceof LogicalTypes.TimestampMicros) {
-      return OriginalType.TIMESTAMP_MICROS;
     }
     return null;
   }
@@ -388,12 +384,8 @@ public class AvroSchemaConverter {
         return LogicalTypes.date();
       case TIME_MILLIS:
         return LogicalTypes.timeMillis();
-      case TIME_MICROS:
-        return LogicalTypes.timeMicros();
       case TIMESTAMP_MILLIS:
         return LogicalTypes.timestampMillis();
-      case TIMESTAMP_MICROS:
-        return LogicalTypes.timestampMicros();
     }
     return null;
   }

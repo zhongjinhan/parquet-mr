@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.parquet.avro;
+package parquet.avro;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -59,11 +59,11 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.apache.avro.Schema.Type.STRING;
-import static org.apache.parquet.avro.AvroTestUtil.field;
-import static org.apache.parquet.avro.AvroTestUtil.instance;
-import static org.apache.parquet.avro.AvroTestUtil.optionalField;
-import static org.apache.parquet.avro.AvroTestUtil.read;
-import static org.apache.parquet.avro.AvroTestUtil.record;
+import static parquet.avro.AvroTestUtil.field;
+import static parquet.avro.AvroTestUtil.instance;
+import static parquet.avro.AvroTestUtil.optionalField;
+import static parquet.avro.AvroTestUtil.read;
+import static parquet.avro.AvroTestUtil.record;
 
 /**
  * This class is based on org.apache.avro.generic.TestGenericLogicalTypes

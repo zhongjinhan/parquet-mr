@@ -21,7 +21,7 @@
 protocol Cars {
 
     record Service {
-        long date;
+        long date2;
         string mechanic;
     }
 
@@ -43,7 +43,7 @@ protocol Cars {
         float capacity;
         boolean hasTurboCharger;
     }
-    
+
     fixed Vin(17);
 
     record Car {
@@ -57,7 +57,7 @@ protocol Cars {
         union { null, Stereo, LeatherTrim } optionalExtra = null;
         union { null, array<Service> } serviceHistory = null;
     }
-    
+
     record ShortCar {
         union { null, string } make = null;
         Engine engine;

@@ -1,0 +1,5 @@
+PATCH-1598: Decimal and Logial Type support in CDH 5.7.1
+
+This patch includes the following commits:
+PARQUET-415: Fix ByteBuffer Binary serialization.
+PARQUET-358: Add support for Avro's logical types API.

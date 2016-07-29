@@ -71,7 +71,7 @@ public class TestSpecificInputOutputFormat {
     if (i % 4 == 0) {
       List<Service> serviceList = Lists.newArrayList();
       serviceList.add(Service.newBuilder()
-          .setDate(1374084640)
+          .setDate2(1374084640)
           .setMechanic("Elon Musk").build());
       carBuilder.setServiceHistory(serviceList);
     }

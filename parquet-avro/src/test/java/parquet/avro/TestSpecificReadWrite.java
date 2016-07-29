@@ -265,8 +265,8 @@ public class TestSpecificReadWrite {
         .setOptionalExtra(
             Stereo.newBuilder().setMake("Blaupunkt").setSpeakers(4).build())
         .setServiceHistory(ImmutableList.of(
-            Service.newBuilder().setDate(1325376000l).setMechanic("Jim").build(),
-            Service.newBuilder().setDate(1356998400l).setMechanic("Mike").build()))
+            Service.newBuilder().setDate2(1325376000l).setMechanic("Jim").build(),
+            Service.newBuilder().setDate2(1356998400l).setMechanic("Mike").build()))
         .build();
   }
 
@@ -284,7 +284,7 @@ public class TestSpecificReadWrite {
         .setOptionalExtra(
             LeatherTrim.newBuilder().setColour("Black").build())
         .setServiceHistory(ImmutableList.of(
-            Service.newBuilder().setDate(1325376000l).setMechanic("Jim").build()))
+            Service.newBuilder().setDate2(1325376000l).setMechanic("Jim").build()))
         .build();
   }
 
@@ -301,7 +301,7 @@ public class TestSpecificReadWrite {
             .setCapacity(1.6f).setHasTurboCharger(true).build())
         .setOptionalExtra(null)
         .setServiceHistory(ImmutableList.of(
-            Service.newBuilder().setDate(1356998400l).setMechanic("Mike").build()))
+            Service.newBuilder().setDate2(1356998400l).setMechanic("Mike").build()))
         .build();
   }
 }

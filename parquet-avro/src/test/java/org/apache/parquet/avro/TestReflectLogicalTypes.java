@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.parquet.avro;
+package parquet.avro;
 
 import org.apache.avro.Conversion;
 import org.apache.avro.Conversions;
@@ -43,7 +43,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import static org.apache.parquet.avro.AvroTestUtil.read;
+import static parquet.avro.AvroTestUtil.read;
 
 /**
  * This class is based on org.apache.avro.reflect.TestReflectLogicalTypes
@@ -120,7 +120,7 @@ public class TestReflectLogicalTypes {
   public void testDecimalBytes() throws IOException {
     Schema schema = REFLECT.getSchema(DecimalRecordBytes.class);
     Assert.assertEquals("Should have the correct record name",
-        "org.apache.parquet.avro.TestReflectLogicalTypes$",
+        "parquet.avro.TestReflectLogicalTypes$",
         schema.getNamespace());
     Assert.assertEquals("Should have the correct record name",
         "DecimalRecordBytes",
@@ -179,7 +179,7 @@ public class TestReflectLogicalTypes {
   public void testDecimalFixed() throws IOException {
     Schema schema = REFLECT.getSchema(DecimalRecordFixed.class);
     Assert.assertEquals("Should have the correct record name",
-        "org.apache.parquet.avro.TestReflectLogicalTypes$",
+        "parquet.avro.TestReflectLogicalTypes$",
         schema.getNamespace());
     Assert.assertEquals("Should have the correct record name",
         "DecimalRecordFixed",
@@ -298,7 +298,7 @@ public class TestReflectLogicalTypes {
 
     Schema schema = model.getSchema(PairRecord.class);
     Assert.assertEquals("Should have the correct record name",
-        "org.apache.parquet.avro.TestReflectLogicalTypes$",
+        "parquet.avro.TestReflectLogicalTypes$",
         schema.getNamespace());
     Assert.assertEquals("Should have the correct record name",
         "PairRecord",

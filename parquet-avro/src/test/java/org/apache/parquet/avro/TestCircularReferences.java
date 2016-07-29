@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.parquet.avro;
+package parquet.avro;
 
 import java.io.File;
 import java.io.IOException;
