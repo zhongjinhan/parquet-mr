@@ -105,7 +105,7 @@ public class ParquetMetadataConverter {
   public static final MetadataFilter SKIP_ROW_GROUPS = new SkipMetadataFilter();
   public static final long MAX_STATS_SIZE = 4096; // limit stats to 4k
 
-  private static final Log LOG = Log.getLog(ParquetMetadataConverter.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ParquetMetadataConverter.class);
   private static final LogicalTypeConverterVisitor LOGICAL_TYPE_ANNOTATION_VISITOR = new LogicalTypeConverterVisitor();
   private static final ConvertedTypeConverterVisitor CONVERTED_TYPE_CONVERTER_VISITOR = new ConvertedTypeConverterVisitor();
 
@@ -1056,9 +1056,9 @@ public class ParquetMetadataConverter {
         return filterFileMetaDataByMidpoint(readFileMetaData(from), filter);
       }
     });
-    if (Log.DEBUG) LOG.debug(fileMetaData);
+    LOG.debug("{}", fileMetaData);
     ParquetMetadata parquetMetadata = fromParquetMetadata(fileMetaData);
-    if (Log.DEBUG) LOG.debug(ParquetMetadata.toPrettyJSON(parquetMetadata));
+    if (LOG.isDebugEnabled()) LOG.debug(ParquetMetadata.toPrettyJSON(parquetMetadata));
     return parquetMetadata;
   }
 
