@@ -2,14 +2,15 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.apache</groupId>
-    <artifactId>apache</artifactId>
-    <version>16</version>
+    <groupId>com.cloudera.cdh</groupId>
+    <artifactId>cdh-root</artifactId>
+    <version>6.x-SNAPSHOT</version>
+    <relativePath></relativePath><!-- no parent resolution -->
   </parent>
 
   <groupId>org.apache.parquet</groupId>
   <artifactId>parquet</artifactId>
-  <version>1.9.0</version>
+  <version>1.9.0-cdh6.x-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Apache Parquet MR</name>
@@ -56,6 +57,49 @@
       <email>julien@twitter.com</email>
     </developer>
   </developers>
+
+  <repositories>
+    <repository>
+      <id>cdh.releases.repo</id>
+      <url>https://repository.cloudera.com/content/groups/cdh-releases-rcs</url>
+      <name>CDH Releases Repository</name>
+      <snapshots>
+      <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>cdh.snapshots.repo</id>
+      <url>https://repository.cloudera.com/content/repositories/snapshots</url>
+      <name>CDH Snapshots Repository</name>
+      <snapshots>
+      <enabled>true</enabled>
+      </snapshots>
+      <releases>
+      <enabled>false</enabled>
+      </releases>
+    </repository>
+    <repository>
+      <id>datanucleus</id>
+      <url>http://www.datanucleus.org/downloads/maven2</url>
+      <name>Datanucleus</name>
+      <snapshots>
+      <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>java.net repository</id>
+      <url>http://download.java.net/maven/2</url>
+      <snapshots>
+      <enabled>false</enabled>
+    </snapshots>
+    </repository>
+    <repository>
+      <id>cdh.thirdparty.repo</id>
+      <url>https://repository.cloudera.com/content/repositories/third-party</url>
+      <name>Cloudera Third Party Repository</name>
+      <snapshots><enabled>false</enabled></snapshots>
+    </repository>
+  </repositories>
 
   <properties>
     <targetJavaVersion>1.7</targetJavaVersion>
