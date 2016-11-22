@@ -1,5 +1,3 @@
-#!/bin/bash
-#
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -18,11 +16,6 @@
 # under the License.
 #
 
-source cloudera/tools/common.sh
+set -e
 
-# mbuild || die 1 "Build failed!"
-
-# unit tests are run in the pre-commit job
-
-
-exit 0
+mvn test --fail-at-end
