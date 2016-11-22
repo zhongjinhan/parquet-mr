@@ -46,6 +46,7 @@ import parquet.schema.MessageTypeParser;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import sun.net.www.content.text.Generic;
 
 import static parquet.avro.AvroTestUtil.array;
 import static parquet.avro.AvroTestUtil.optional;

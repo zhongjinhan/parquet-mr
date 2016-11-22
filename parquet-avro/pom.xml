@@ -32,6 +32,9 @@
   <name>Apache Parquet Avro</name>
   <url>https://parquet.apache.org</url>
 
+  <properties>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.twitter</groupId>

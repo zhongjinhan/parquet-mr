@@ -23,8 +23,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.apache.avro.Conversion;
-import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericArray;
 import org.apache.avro.generic.GenericData;
@@ -117,11 +115,6 @@ class AvroIndexedRecordConverter<T extends IndexedRecord> extends GroupConverter
 
   @SuppressWarnings("unchecked")
   private static <T> Class<T> getDatumClass(GenericData model, Schema schema) {
-    if (model.getConversionFor(schema.getLogicalType()) != null) {
-      // use generic classes to pass data to conversions
-      return null;
-    }
-
     if (model instanceof SpecificData) {
       return (Class<T>) ((SpecificData) model).getClass(schema);
     }
@@ -144,16 +137,7 @@ class AvroIndexedRecordConverter<T extends IndexedRecord> extends GroupConverter
   }
 
   private static Converter newConverter(Schema schema, Type type,
-      GenericData model, ParentValueContainer setter) {
-
-    LogicalType logicalType = schema.getLogicalType();
-    // the expected type is always null because it is determined by the parent
-    // datum class, which never helps for generic. when logical types are added
-    // to specific, this should pass the expected type here.
-    Conversion<?> conversion = model.getConversionFor(logicalType);
-    ParentValueContainer parent = ParentValueContainer
-        .getConversionContainer(setter, conversion, schema);
-
+      GenericData model, ParentValueContainer parent) {
     if (schema.getType().equals(Schema.Type.BOOLEAN)) {
       return new AvroConverters.FieldBooleanConverter(parent);
     } else if (schema.getType().equals(Schema.Type.INT)) {
