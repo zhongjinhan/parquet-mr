@@ -48,41 +48,41 @@ public class ByteBasedBitPackingGenerator {
     if (!file.getParentFile().exists()) {
       file.getParentFile().mkdirs();
     }
-    FileWriter fw = new FileWriter(file);
-    fw.append("package parquet.column.values.bitpacking;\n");
-    fw.append("\n");
-    fw.append("/**\n");
-    if (msbFirst) {
-      fw.append(" * Packs from the Most Significant Bit first\n");
-    } else {
-      fw.append(" * Packs from the Least Significant Bit first\n");
-    }
-    fw.append(" * \n");
-    fw.append(" * @author automatically generated\n");
-    fw.append(" * @see ByteBasedBitPackingGenerator\n");
-    fw.append(" *\n");
-    fw.append(" */\n");
-    fw.append("public abstract class " + className + " {\n");
-    fw.append("\n");
-    fw.append("  private static final BytePacker[] packers = new BytePacker[33];\n");
-    fw.append("  static {\n");
-    for (int i = 0; i <= PACKER_COUNT; i++) {
-      fw.append("    packers[" + i + "] = new Packer" + i + "();\n");
-    }
-    fw.append("  }\n");
-    fw.append("\n");
-    fw.append("  public static final BytePackerFactory factory = new BytePackerFactory() {\n");
-    fw.append("    public BytePacker newBytePacker(int bitWidth) {\n");
-    fw.append("      return packers[bitWidth];\n");
-    fw.append("    }\n");
-    fw.append("  };\n");
-    fw.append("\n");
-    for (int i = 0; i <= PACKER_COUNT; i++) {
-      generateClass(fw, i, msbFirst);
+    try (FileWriter fw = new FileWriter(file)) {
+      fw.append("package parquet.column.values.bitpacking;\n");
       fw.append("\n");
+      fw.append("/**\n");
+      if (msbFirst) {
+        fw.append(" * Packs from the Most Significant Bit first\n");
+      } else {
+        fw.append(" * Packs from the Least Significant Bit first\n");
+      }
+      fw.append(" * \n");
+      fw.append(" * @author automatically generated\n");
+      fw.append(" * @see ByteBasedBitPackingGenerator\n");
+      fw.append(" *\n");
+      fw.append(" */\n");
+      fw.append("public abstract class " + className + " {\n");
+      fw.append("\n");
+      fw.append("  private static final BytePacker[] packers = new BytePacker[33];\n");
+      fw.append("  static {\n");
+      for (int i = 0; i <= PACKER_COUNT; i++) {
+        fw.append("    packers[" + i + "] = new Packer" + i + "();\n");
+      }
+      fw.append("  }\n");
+      fw.append("\n");
+      fw.append("  public static final BytePackerFactory factory = new BytePackerFactory() {\n");
+      fw.append("    public BytePacker newBytePacker(int bitWidth) {\n");
+      fw.append("      return packers[bitWidth];\n");
+      fw.append("    }\n");
+      fw.append("  };\n");
+      fw.append("\n");
+      for (int i = 0; i <= PACKER_COUNT; i++) {
+        generateClass(fw, i, msbFirst);
+        fw.append("\n");
+      }
+      fw.append("}\n");
     }
-    fw.append("}\n");
-    fw.close();
   }
 
   private static void generateClass(FileWriter fw, int bitWidth, boolean msbFirst) throws IOException {

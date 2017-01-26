@@ -59,7 +59,7 @@ interface GlobNode {
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
-      return getClass() == o.getClass() && s.equals(((Atom) o).s);
+      return o != null && getClass() == o.getClass() && s.equals(((Atom) o).s);
     }
 
     @Override
@@ -98,7 +98,7 @@ interface GlobNode {
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
-      return getClass() == o.getClass() && children.equals(((OneOf) o).children);
+      return o != null && getClass() == o.getClass() && children.equals(((OneOf) o).children);
     }
 
     @Override
@@ -137,7 +137,7 @@ interface GlobNode {
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
-      return getClass() == o.getClass() && children.equals(((OneOf) o).children);
+      return o != null && getClass() == o.getClass() && children.equals(((OneOf) o).children);
     }
 
     @Override

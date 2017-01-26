@@ -38,7 +38,7 @@ public final class Registry {
     for (Map.Entry<String,Class<? extends Command>> entry : registry.entrySet()) {
       try {
         results.put(entry.getKey(), entry.getValue().newInstance());
-      } catch (Throwable th) {
+      } catch (Exception ex) {
       }
     }
 
@@ -53,7 +53,7 @@ public final class Registry {
 
     try {
       return clazz.newInstance();
-    } catch (Throwable th) {
+    } catch (Exception ex) {
       return null;
     }
   }
