@@ -108,7 +108,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <github.global.server>github</github.global.server>
     <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
-    <maven-thrift-plugin.version>0.1.11</maven-thrift-plugin.version>
     <jackson.groupId>org.codehaus.jackson</jackson.groupId>
     <jackson.version>${cdh.jackson.version}</jackson.version>
     <jackson.package>org.codehaus.jackson</jackson.package>
@@ -129,6 +128,7 @@
     <protobuf.version>${cdh.protobuf.version}</protobuf.version>
     <protoc.executable>protoc</protoc.executable>
     <thrift.version>${cdh.thrift.version}</thrift.version>
+    <thrift-maven-plugin.version>0.10.0</thrift-maven-plugin.version>
     <fastutil.version>${cdh.fastutil.version}</fastutil.version>
     <semver.api.version>0.9.33</semver.api.version>
     <slf4j.version>${cdh.slf4j.version}</slf4j.version>
