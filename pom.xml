@@ -99,6 +99,12 @@
       <name>Cloudera Third Party Repository</name>
       <snapshots><enabled>false</enabled></snapshots>
     </repository>
+    <repository>
+      <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
+      <name>Jitpack.io repository</name>
+      <!-- needed for brotli-codec -->
+    </repository>
   </repositories>
 
   <properties>
@@ -136,6 +142,7 @@
     <slf4j.version>${cdh.slf4j.version}</slf4j.version>
     <avro.version>${cdh.avro.version}</avro.version>
     <guava.version>${cdh.guava.version}</guava.version>
+    <brotli-codec.version>0.1.1</brotli-codec.version>
     <mockito.version>1.10.19</mockito.version>
   </properties>
 
@@ -297,6 +304,7 @@
                    <dumpDetails>true</dumpDetails>
                    <previousVersion>${previous.version}</previousVersion>
                    <excludes>
+                     <exclude>org/apache/parquet/hadoop/util/**</exclude>
                      <exclude>org/apache/parquet/thrift/projection/**</exclude>
                      <exclude>org/apache/parquet/thrift/ThriftSchemaConverter</exclude>
                      <exclude>org/apache/parquet/filter2/**</exclude>
@@ -304,6 +312,7 @@
                      <exclude>org/apache/parquet/hadoop/ParquetInputSplit</exclude>
                      <exclude>org/apache/parquet/hadoop/CodecFactory**</exclude>
                      <exclude>shaded/**</exclude> <!-- shaded by parquet -->
+                     <exclude>org/apache/parquet/it/unimi/dsi/fastutil/**</exclude> <!-- Another shaded dependency from parquet-column -->
                      <!-- temporary exclusions for false-positives -->
                      <exclude>org/apache/parquet/Version</exclude>
                      <exclude>org/apache/parquet/schema/**</exclude> <!-- methods moved to new superclass -->
