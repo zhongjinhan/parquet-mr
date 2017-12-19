@@ -139,7 +139,9 @@
 
   <modules>
     <module>parquet-avro</module>
+    <!--
     <module>parquet-benchmarks</module>
+    -->
     <module>parquet-cascading</module>
     <module>parquet-cascading3</module>
     <module>parquet-column</module>
@@ -152,11 +154,15 @@
     <module>parquet-pig-bundle</module>
     <module>parquet-protobuf</module>
     <module>parquet-scala</module>
+    <!--
     <module>parquet-scrooge</module>
+    -->
     <module>parquet-thrift</module>
     <module>parquet-hadoop-bundle</module>
+    <!--
     <module>parquet-hive</module>
     <module>parquet-hive-bundle</module>
+    -->
     <module>parquet-tools</module>
   </modules>
 
