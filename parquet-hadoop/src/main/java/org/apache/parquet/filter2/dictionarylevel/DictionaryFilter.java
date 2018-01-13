@@ -32,6 +32,7 @@ import org.apache.parquet.hadoop.metadata.ColumnChunkMetaData;
 import org.apache.parquet.hadoop.metadata.ColumnPath;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -74,7 +75,7 @@ public class DictionaryFilter implements FilterPredicate.Visitor<Boolean> {
 
   @SuppressWarnings("unchecked")
   private <T extends Comparable<T>> Set<T> expandDictionary(ColumnChunkMetaData meta) throws IOException {
-    ColumnDescriptor col = new ColumnDescriptor(meta.getPath().toArray(), meta.getType(), -1, -1);
+    ColumnDescriptor col = new ColumnDescriptor(meta.getPath().toArray(), meta.getPrimitiveType(), -1, -1);
     DictionaryPage page = dictionaries.readDictionaryPage(col);
 
     // the chunk may not be dictionary-encoded
@@ -211,8 +212,9 @@ public class DictionaryFilter implements FilterPredicate.Visitor<Boolean> {
         return BLOCK_MIGHT_MATCH;
       }
 
+      Comparator<T> comparator = meta.getPrimitiveType().comparator();
       for (T entry : dictSet) {
-        if (value.compareTo(entry) > 0) {
+        if (comparator.compare(value, entry) > 0) {
           return BLOCK_MIGHT_MATCH;
         }
       }
@@ -252,8 +254,9 @@ public class DictionaryFilter implements FilterPredicate.Visitor<Boolean> {
         return BLOCK_MIGHT_MATCH;
       }
 
+      Comparator<T> comparator = meta.getPrimitiveType().comparator();
       for (T entry : dictSet) {
-        if (value.compareTo(entry) >= 0) {
+        if (comparator.compare(value, entry) >= 0) {
           return BLOCK_MIGHT_MATCH;
         }
       }
@@ -291,8 +294,9 @@ public class DictionaryFilter implements FilterPredicate.Visitor<Boolean> {
         return BLOCK_MIGHT_MATCH;
       }
 
+      Comparator<T> comparator = meta.getPrimitiveType().comparator();
       for (T entry : dictSet) {
-        if (value.compareTo(entry) < 0) {
+        if (comparator.compare(value, entry) < 0) {
           return BLOCK_MIGHT_MATCH;
         }
       }
@@ -332,8 +336,9 @@ public class DictionaryFilter implements FilterPredicate.Visitor<Boolean> {
         return BLOCK_MIGHT_MATCH;
       }
 
+      Comparator<T> comparator = meta.getPrimitiveType().comparator();
       for (T entry : dictSet) {
-        if (value.compareTo(entry) <= 0) {
+        if (comparator.compare(value, entry) <= 0) {
           return BLOCK_MIGHT_MATCH;
         }
       }
