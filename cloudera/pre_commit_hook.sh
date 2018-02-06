@@ -24,4 +24,4 @@ THRIFT_HOME=/opt/toolchain/thrift-${THRIFT_VERSION}
 export JAVA_HOME="${JAVA8_HOME}"
 export PATH="$JAVA_HOME/bin:$THRIFT_HOME/bin:/opt/toolchain/protobuf-2.5.0/bin:$PATH"
 
-mvn clean test -Dthrift.version=${THRIFT_VERSION} --fail-at-end
+mvn clean test -Dthrift.version=${THRIFT_VERSION} --fail-at-end -B
