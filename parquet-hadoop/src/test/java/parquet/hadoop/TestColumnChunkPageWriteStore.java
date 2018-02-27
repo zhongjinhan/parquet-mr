@@ -156,13 +156,13 @@ public class TestColumnChunkPageWriteStore {
 
     BytesInput fakeData = BytesInput.fromInt(34);
     int fakeCount = 3;
-    BinaryStatistics fakeStats = new BinaryStatistics();
 
     ColumnChunkPageWriteStore store = new ColumnChunkPageWriteStore(
         compressor(UNCOMPRESSED), schema, initialSize);
 
     for (ColumnDescriptor col : schema.getColumns()) {
       PageWriter pageWriter = store.getPageWriter(col);
+      Statistics fakeStats = Statistics.getStatsBasedOnType(col.getType());
       pageWriter.writePage(fakeData, fakeCount, fakeStats, RLE, RLE, PLAIN);
     }
 

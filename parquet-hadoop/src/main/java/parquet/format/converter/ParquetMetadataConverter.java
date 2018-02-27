@@ -286,17 +286,21 @@ public class ParquetMetadataConverter {
   public static parquet.column.statistics.Statistics fromParquetStatistics
       (String createdBy, Statistics statistics, PrimitiveTypeName type) {
     // create stats object based on the column type
-    parquet.column.statistics.Statistics stats = parquet.column.statistics.Statistics.getStatsBasedOnType(type);
+    parquet.column.statistics.Statistics.Builder statsBuilder =
+        parquet.column.statistics.Statistics.getBuilder(type);
     // If there was no statistics written to the footer, create an empty Statistics object and return
 
     // NOTE: See docs in CorruptStatistics for explanation of why this check is needed
     if (statistics != null && !CorruptStatistics.shouldIgnoreStatistics(createdBy, type)) {
       if (statistics.isSetMax() && statistics.isSetMin()) {
-        stats.setMinMaxFromBytes(statistics.min.array(), statistics.max.array());
+        statsBuilder.withMin(statistics.min.array());
+        statsBuilder.withMax(statistics.max.array());
       }
-      stats.setNumNulls(statistics.null_count);
+      if (statistics.isSetNull_count()) {
+         statsBuilder.withNumNulls(statistics.null_count);
+      }
     }
-    return stats;
+    return statsBuilder.build();
   }
 
   public PrimitiveTypeName getPrimitive(Type type) {
