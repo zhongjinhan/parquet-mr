@@ -21,7 +21,9 @@ package parquet.format.converter;
 import static java.util.Collections.emptyList;
 import static parquet.schema.MessageTypeParser.parseMessageType;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static parquet.format.CompressionCodec.UNCOMPRESSED;
 import static parquet.format.Type.INT32;
@@ -477,5 +479,37 @@ public class TestParquetMetadataConverter {
         max, BytesUtils.bytesToBool(formatStats.getMax()));
     Assert.assertEquals("Num nulls should match",
         3004, formatStats.getNull_count());
+  }
+
+  @Test
+  public void testMissingValuesFromStats() {
+    ParquetMetadataConverter converter = new ParquetMetadataConverter();
+    PrimitiveTypeName type = PrimitiveTypeName.INT32;
+
+    parquet.format.Statistics formatStats = new parquet.format.Statistics();
+    Statistics<?> stats = converter.fromParquetStatistics(Version.FULL_VERSION, formatStats, type);
+    assertFalse(stats.isNumNullsSet());
+    assertFalse(stats.hasNonNullValue());
+    assertTrue(stats.isEmpty());
+    assertEquals(-1, stats.getNumNulls());
+
+    formatStats.clear();
+    formatStats.setMin(BytesUtils.intToBytes(-100));
+    formatStats.setMax(BytesUtils.intToBytes(100));
+    stats = converter.fromParquetStatistics(Version.FULL_VERSION, formatStats, type);
+    assertFalse(stats.isNumNullsSet());
+    assertTrue(stats.hasNonNullValue());
+    assertFalse(stats.isEmpty());
+    assertEquals(-1, stats.getNumNulls());
+    assertEquals(-100, stats.genericGetMin());
+    assertEquals(100, stats.genericGetMax());
+
+    formatStats.clear();
+    formatStats.setNull_count(2000);
+    stats = converter.fromParquetStatistics(Version.FULL_VERSION, formatStats, type);
+    assertTrue(stats.isNumNullsSet());
+    assertFalse(stats.hasNonNullValue());
+    assertFalse(stats.isEmpty());
+    assertEquals(2000, stats.getNumNulls());
   }
 }

@@ -95,7 +95,7 @@ public class TestParquetFileWriter {
   private static final CompressionCodecName CODEC = CompressionCodecName.UNCOMPRESSED;
 
   private static final BinaryStatistics STATS1 = new BinaryStatistics();
-  private static final BinaryStatistics STATS2 = new BinaryStatistics();
+  private static final LongStatistics STATS2 = new LongStatistics();
 
   private String writeSchema;
 
@@ -218,7 +218,7 @@ public class TestParquetFileWriter {
     Configuration conf = new Configuration();
 
     // uses the test constructor
-    ParquetFileWriter w = new ParquetFileWriter(conf, SCHEMA, path, 120, 60);
+    ParquetFileWriter w = new ParquetFileWriter(conf, SCHEMA, path, 140, 60);
 
     w.start();
     w.startBlock(3);
@@ -237,7 +237,7 @@ public class TestParquetFileWriter {
     long c2Ends = w.getPos();
     w.endBlock();
 
-    long firstRowGroupEnds = w.getPos(); // should be 109
+    long firstRowGroupEnds = w.getPos();
 
     w.startBlock(4);
     w.startColumn(C1, 7, CODEC);
@@ -276,10 +276,10 @@ public class TestParquetFileWriter {
     // verify block starting positions with padding
     assertEquals("First row group should start after magic",
         4, readFooter.getBlocks().get(0).getStartingPos());
-    assertTrue("First row group should end before the block size (120)",
-        firstRowGroupEnds < 120);
+    assertTrue("First row group should end before the block size (140)",
+        firstRowGroupEnds < 140);
     assertEquals("Second row group should start at the block size",
-        120, readFooter.getBlocks().get(1).getStartingPos());
+        140, readFooter.getBlocks().get(1).getStartingPos());
 
     { // read first block of col #1
       ParquetFileReader r = new ParquetFileReader(conf, readFooter.getFileMetaData(), path,
@@ -342,7 +342,7 @@ public class TestParquetFileWriter {
     long c2Ends = w.getPos();
     w.endBlock();
 
-    long firstRowGroupEnds = w.getPos(); // should be 109
+    long firstRowGroupEnds = w.getPos();
 
     w.startBlock(4);
     w.startColumn(C1, 7, CODEC);
@@ -381,10 +381,10 @@ public class TestParquetFileWriter {
     // verify block starting positions with padding
     assertEquals("First row group should start after magic",
         4, readFooter.getBlocks().get(0).getStartingPos());
-    assertTrue("First row group should end before the block size (120)",
-        firstRowGroupEnds > 100);
+    assertTrue("First row group should end before the block size (140)",
+        firstRowGroupEnds < 140);
     assertEquals("Second row group should start after no padding",
-        109, readFooter.getBlocks().get(1).getStartingPos());
+        firstRowGroupEnds, readFooter.getBlocks().get(1).getStartingPos());
 
     { // read first block of col #1
       ParquetFileReader r = new ParquetFileReader(conf, readFooter.getFileMetaData(), path,
@@ -634,8 +634,12 @@ public class TestParquetFileWriter {
     byte[] bytes4 = { 3, 4, 5, 6};
     CompressionCodecName codec = CompressionCodecName.UNCOMPRESSED;
 
-    BinaryStatistics stats1 = new BinaryStatistics();
-    BinaryStatistics stats2 = new BinaryStatistics();
+    parquet.column.statistics.Statistics stats1 =
+      parquet.column.statistics.Statistics
+      .getStatsBasedOnType(PrimitiveTypeName.BINARY);
+    parquet.column.statistics.Statistics stats2 =
+      parquet.column.statistics.Statistics
+      .getStatsBasedOnType(PrimitiveTypeName.INT64);
 
     ParquetFileWriter w = new ParquetFileWriter(configuration, schema, path);
     w.start();
