@@ -18,10 +18,7 @@
 
 set -e
 
-# set up thrift, protoc and Java
-THRIFT_VERSION=0.9.0
-THRIFT_HOME=/opt/toolchain/thrift-${THRIFT_VERSION}
-export JAVA_HOME="${JAVA8_HOME}"
-export PATH="$JAVA_HOME/bin:$THRIFT_HOME/bin:/opt/toolchain/protobuf-2.5.0/bin:$PATH"
+# invoke docker with an image that has the proper thrift and protoc installed:
+docker run -v "$(pwd):/mnt" -w /mnt docker-registry.infra.cloudera.com/cauldron/ubuntu1604:1505254507 bash -c "adduser --uid $(id -u) --gecos '' --disabled-password me; su me -c '/mnt/cloudera/inside-docker.sh'"
 
-mvn clean test -Dthrift.version=${THRIFT_VERSION} --fail-at-end -B
+
