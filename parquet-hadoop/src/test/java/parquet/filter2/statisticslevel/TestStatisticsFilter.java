@@ -87,10 +87,10 @@ public class TestStatisticsFilter {
   private static final IntStatistics intStats = new IntStatistics();
   private static final IntStatistics nullIntStats = new IntStatistics();
   private static final parquet.column.statistics.Statistics<?> emptyIntStats = parquet.column.statistics.Statistics
-      .getBuilder(PrimitiveTypeName.INT32).build();
+      .getBuilderForReading(PrimitiveTypeName.INT32).build();
   private static final DoubleStatistics doubleStats = new DoubleStatistics();
   private static final parquet.column.statistics.Statistics<?> missingMinMaxDoubleStats = parquet.column.statistics.Statistics
-      .getBuilder(PrimitiveTypeName.DOUBLE).withNumNulls(100).build();
+      .getBuilderForReading(PrimitiveTypeName.DOUBLE).withNumNulls(100).build();
 
   static {
     intStats.setMinMax(10, 100);
