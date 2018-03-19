@@ -287,7 +287,7 @@ public class ParquetMetadataConverter {
       (String createdBy, Statistics statistics, PrimitiveTypeName type) {
     // create stats object based on the column type
     parquet.column.statistics.Statistics.Builder statsBuilder =
-        parquet.column.statistics.Statistics.getBuilder(type);
+        parquet.column.statistics.Statistics.getBuilderForReading(type);
     // If there was no statistics written to the footer, create an empty Statistics object and return
 
     // NOTE: See docs in CorruptStatistics for explanation of why this check is needed
