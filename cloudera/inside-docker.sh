@@ -16,4 +16,15 @@ if [[ ! -d "$PROTOC_HOME" ]]; then
     exit 1
 fi
 
-mvn clean test --fail-at-end
+# we need to re-run setup inside the docker container to get mvn-gbn script.
+SETUP_FILE="$(mktemp)"
+function cleanup_setup_file {
+    rm -rf "$SETUP_FILE"
+}
+trap cleanup_setup_file EXIT
+
+curl http://github.mtv.cloudera.com/raw/cdh/cdh/cdh6.x/tools/gerrit-unittest-setup.sh -o "$SETUP_FILE"
+source "$SETUP_FILE"
+
+# mvn-gbn should now be on our path
+mvn-gbn clean test --fail-at-end
