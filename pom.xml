@@ -110,6 +110,7 @@
     <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
     <jackson.groupId>org.codehaus.jackson</jackson.groupId>
     <jackson.version>${cdh.jackson.version}</jackson.version>
+    <jackson-mapper-asl.version>${cdh.jackson-mapper-asl.version}</jackson-mapper-asl.version>
     <jackson.package>org.codehaus.jackson</jackson.package>
     <shade.prefix>shaded.parquet</shade.prefix>
     <hadoop.version>${cdh.hadoop.version}</hadoop.version>
