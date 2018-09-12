@@ -20,14 +20,17 @@ package org.apache.parquet.tools.read;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Optional;
 
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.Converter;
 import org.apache.parquet.io.api.GroupConverter;
 import org.apache.parquet.io.api.PrimitiveConverter;
 import org.apache.parquet.schema.GroupType;
-import org.apache.parquet.schema.OriginalType;
+import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.Type;
+
+import static java.util.Optional.of;
 
 public class SimpleRecordConverter extends GroupConverter {
   private final Converter converters[];
@@ -51,28 +54,32 @@ public class SimpleRecordConverter extends GroupConverter {
   }
 
   private Converter createConverter(Type field) {
-    OriginalType otype = field.getOriginalType();
+    LogicalTypeAnnotation ltype = field.getLogicalTypeAnnotation();
 
     if (field.isPrimitive()) {
-      if (otype != null) {
-        switch (otype) {
-          case MAP: break;
-          case LIST: break;
-          case UTF8: return new StringConverter(field.getName());
-          case MAP_KEY_VALUE: break;
-          case ENUM: break;
-        }
+      if (ltype != null) {
+        return ltype.accept(new LogicalTypeAnnotation.LogicalTypeAnnotationVisitor<Converter>() {
+          @Override
+          public Optional<Converter> visit(LogicalTypeAnnotation.StringLogicalTypeAnnotation stringLogicalType) {
+            return of(new StringConverter(field.getName()));
+          }
+        }).orElse(new SimplePrimitiveConverter(field.getName()));
       }
-
-      return new SimplePrimitiveConverter(field.getName());
     }
 
     GroupType groupType = field.asGroupType();
-    if (otype != null) {
-      switch (otype) {
-        case MAP: return new SimpleMapRecordConverter(groupType, field.getName(), this);
-        case LIST: return new SimpleListRecordConverter(groupType, field.getName(), this);
-      }
+    if (ltype != null) {
+      return ltype.accept(new LogicalTypeAnnotation.LogicalTypeAnnotationVisitor<Converter>() {
+        @Override
+        public Optional<Converter> visit(LogicalTypeAnnotation.MapLogicalTypeAnnotation mapLogicalType) {
+          return of(new SimpleMapRecordConverter(groupType, field.getName(), SimpleRecordConverter.this));
+        }
+
+        @Override
+        public Optional<Converter> visit(LogicalTypeAnnotation.ListLogicalTypeAnnotation listLogicalType) {
+          return of(new SimpleListRecordConverter(groupType, field.getName(), SimpleRecordConverter.this));
+        }
+      }).orElse(new SimpleRecordConverter(groupType, field.getName(), this));
     }
     return new SimpleRecordConverter(groupType, field.getName(), this);
   }
