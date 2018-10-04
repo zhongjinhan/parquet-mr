@@ -506,6 +506,7 @@ public class Types {
                 checkInt32PrimitiveType(timeLogicalType);
                 break;
               case MICROS:
+              case NANOS:
                 checkInt64PrimitiveType(timeLogicalType);
                 break;
               default:
