@@ -40,6 +40,7 @@ import org.apache.pig.impl.util.Utils;
 import org.apache.pig.parser.ParserException;
 import org.junit.Test;
 
+import org.apache.parquet.Log;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.example.data.GroupWriter;
 import org.apache.parquet.example.data.simple.SimpleGroup;
@@ -50,11 +51,9 @@ import org.apache.parquet.io.ConverterConsumer;
 import org.apache.parquet.io.RecordConsumerLoggingWrapper;
 import org.apache.parquet.io.api.RecordMaterializer;
 import org.apache.parquet.schema.MessageType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TestTupleRecordConsumer {
-  private static final Logger LOG = LoggerFactory.getLogger(TestTupleRecordConsumer.class);
+  private static final Log logger = Log.getLog(TestTupleRecordConsumer.class);
 
   @Test
   public void testArtSchema() throws ExecException, ParserException {
@@ -128,7 +127,7 @@ public class TestTupleRecordConsumer {
     RecordMaterializer<Tuple> recordConsumer = newPigRecordConsumer(pigSchemaString);
     TupleWriteSupport tupleWriter = newTupleWriter(pigSchemaString, recordConsumer);
     for (Tuple tuple : input) {
-      LOG.debug("{}", tuple);
+      logger.debug(tuple);
       tupleWriter.write(tuple);
       tuples.add(recordConsumer.getCurrentRecord());
     }
@@ -152,14 +151,14 @@ public class TestTupleRecordConsumer {
       groupWriter.write(group);
       final Tuple tuple = pigRecordConsumer.getCurrentRecord();
       tuples.add(tuple);
-      LOG.debug("in: {}\nout:{}", group, tuple);
+      logger.debug("in: "+group+"\nout:"+tuple);
     }
 
     List<Group> groups = new ArrayList<Group>();
     GroupRecordConverter recordConsumer = new GroupRecordConverter(schema);
     TupleWriteSupport tupleWriter = newTupleWriter(pigSchemaString, recordConsumer);
     for (Tuple t : tuples) {
-      LOG.debug("{}", t);
+      logger.debug(t);
       tupleWriter.write(t);
       groups.add(recordConsumer.getCurrentRecord());
     }
@@ -167,7 +166,7 @@ public class TestTupleRecordConsumer {
     assertEquals(input.size(), groups.size());
     for (int i = 0; i < input.size(); i++) {
       Group in = input.get(i);
-      LOG.debug("{}", in);
+      logger.debug(in);
       Group out = groups.get(i);
       assertEquals(in.toString(), out.toString());
     }

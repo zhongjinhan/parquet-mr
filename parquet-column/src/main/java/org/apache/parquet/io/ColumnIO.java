@@ -22,6 +22,7 @@ package org.apache.parquet.io;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.parquet.Log;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.Type.Repetition;
 
@@ -32,6 +33,8 @@ import org.apache.parquet.schema.Type.Repetition;
  *
  */
 abstract public class ColumnIO {
+
+  static final boolean DEBUG = Log.DEBUG;
 
   private final GroupColumnIO parent;
   private final Type type;

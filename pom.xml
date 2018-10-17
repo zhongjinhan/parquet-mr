@@ -229,6 +229,7 @@
           <aggregate>true</aggregate>
           <instrumentation>
             <ignores>
+              <ignore>org.apache.parquet.Log.*</ignore>
               <ignore>java.lang.UnsupportedOperationException.*</ignore>
             </ignores>
             <excludes>

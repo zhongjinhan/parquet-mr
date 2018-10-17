@@ -25,10 +25,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.parquet.Log;
 import org.apache.parquet.column.ColumnWriteStore;
 import org.apache.parquet.column.ColumnWriter;
 import org.apache.parquet.column.impl.ColumnReadStoreImpl;
 import org.apache.parquet.column.page.PageReadStore;
+import org.apache.parquet.column.values.dictionary.IntList;
 import org.apache.parquet.filter.UnboundRecordFilter;
 import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.filter2.compat.FilterCompat.Filter;
@@ -47,9 +49,6 @@ import org.apache.parquet.schema.MessageType;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntIterator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import static org.apache.parquet.Preconditions.checkNotNull;
 
 /**
@@ -59,9 +58,9 @@ import static org.apache.parquet.Preconditions.checkNotNull;
  * @author Julien Le Dem
  */
 public class MessageColumnIO extends GroupColumnIO {
-  private static final Logger LOG = LoggerFactory.getLogger(MessageColumnIO.class);
+  private static final Log logger = Log.getLog(MessageColumnIO.class);
 
-  private static final boolean DEBUG = LOG.isDebugEnabled();
+  private static final boolean DEBUG = Log.DEBUG;
 
   private List<PrimitiveColumnIO> leaves;
 
@@ -262,24 +261,20 @@ public class MessageColumnIO extends GroupColumnIO {
       r = new int[maxDepth];
     }
 
-    private void printState() {
-      if (DEBUG) {
-        log(currentLevel + ", " + fieldsWritten[currentLevel] + ": " + Arrays.toString(currentColumnIO.getFieldPath()) + " r:" + r[currentLevel]);
-        if (r[currentLevel] > currentColumnIO.getRepetitionLevel()) {
-          // sanity check
-          throw new InvalidRecordException(r[currentLevel] + "(r) > " + currentColumnIO.getRepetitionLevel() + " ( schema r)");
-        }
+    public void printState() {
+      log(currentLevel + ", " + fieldsWritten[currentLevel] + ": " + Arrays.toString(currentColumnIO.getFieldPath()) + " r:" + r[currentLevel]);
+      if (r[currentLevel] > currentColumnIO.getRepetitionLevel()) {
+        // sanity check
+        throw new InvalidRecordException(r[currentLevel] + "(r) > " + currentColumnIO.getRepetitionLevel() + " ( schema r)");
       }
     }
 
-    private void log(Object message, Object...parameters) {
-      if (DEBUG) {
-        String indent = "";
-        for (int i = 0; i < currentLevel; ++i) {
-          indent += "  ";
-        }
-        LOG.debug(indent + message, parameters);
+    private void log(Object m) {
+      String indent = "";
+      for (int i = 0; i < currentLevel; ++i) {
+        indent += "  ";
       }
+      logger.debug(indent + m);
     }
 
     @Override
@@ -303,7 +298,7 @@ public class MessageColumnIO extends GroupColumnIO {
     @Override
     public void startField(String field, int index) {
       try {
-        if (DEBUG) log("startField({}, {})", field, index);
+        if (DEBUG) log("startField(" + field + ", " + index + ")");
         currentColumnIO = ((GroupColumnIO) currentColumnIO).getChild(index);
         emptyField = true;
         if (DEBUG) printState();
@@ -314,7 +309,7 @@ public class MessageColumnIO extends GroupColumnIO {
 
     @Override
     public void endField(String field, int index) {
-      if (DEBUG) log("endField({}, {})",field ,index);
+      if (DEBUG) log("endField(" + field + ", " + index + ")");
       currentColumnIO = currentColumnIO.getParent();
       if (emptyField) {
         throw new ParquetEncodingException("empty fields are illegal, the field should be ommited completely instead");
@@ -331,7 +326,8 @@ public class MessageColumnIO extends GroupColumnIO {
           try {
             ColumnIO undefinedField = ((GroupColumnIO) currentColumnIO).getChild(i);
             int d = currentColumnIO.getDefinitionLevel();
-            if (DEBUG) log(Arrays.toString(undefinedField.getFieldPath()) + ".writeNull(" + r[currentLevel] + "," + d + ")");
+            if (DEBUG)
+              log(Arrays.toString(undefinedField.getFieldPath()) + ".writeNull(" + r[currentLevel] + "," + d + ")");
             writeNull(undefinedField, r[currentLevel], d);
           } catch (RuntimeException e) {
             throw new ParquetEncodingException("error while writing nulls for fields of indexes " + i + " . current index: " + fieldsWritten[currentLevel], e);
@@ -376,7 +372,7 @@ public class MessageColumnIO extends GroupColumnIO {
 
     private void setRepetitionLevel() {
       r[currentLevel] = currentColumnIO.getRepetitionLevel();
-      if (DEBUG) log("r: {}", r[currentLevel]);
+      if (DEBUG) log("r: " + r[currentLevel]);
     }
 
     @Override
@@ -432,7 +428,7 @@ public class MessageColumnIO extends GroupColumnIO {
 
     @Override
     public void addInteger(int value) {
-      if (DEBUG) log("addInt({})", value);
+      if (DEBUG) log("addInt(" + value + ")");
       emptyField = false;
       getColumnWriter().write(value, r[currentLevel], currentColumnIO.getDefinitionLevel());
 
@@ -442,7 +438,7 @@ public class MessageColumnIO extends GroupColumnIO {
 
     @Override
     public void addLong(long value) {
-      if (DEBUG) log("addLong({})", value);
+      if (DEBUG) log("addLong(" + value + ")");
       emptyField = false;
       getColumnWriter().write(value, r[currentLevel], currentColumnIO.getDefinitionLevel());
 
@@ -452,7 +448,7 @@ public class MessageColumnIO extends GroupColumnIO {
 
     @Override
     public void addBoolean(boolean value) {
-      if (DEBUG) log("addBoolean({})", value);
+      if (DEBUG) log("addBoolean(" + value + ")");
       emptyField = false;
       getColumnWriter().write(value, r[currentLevel], currentColumnIO.getDefinitionLevel());
 
@@ -462,7 +458,7 @@ public class MessageColumnIO extends GroupColumnIO {
 
     @Override
     public void addBinary(Binary value) {
-      if (DEBUG) log("addBinary({} bytes)", value.length());
+      if (DEBUG) log("addBinary(" + value.length() + " bytes)");
       emptyField = false;
       getColumnWriter().write(value, r[currentLevel], currentColumnIO.getDefinitionLevel());
 
@@ -472,7 +468,7 @@ public class MessageColumnIO extends GroupColumnIO {
 
     @Override
     public void addFloat(float value) {
-      if (DEBUG) log("addFloat({})", value);
+      if (DEBUG) log("addFloat(" + value + ")");
       emptyField = false;
       getColumnWriter().write(value, r[currentLevel], currentColumnIO.getDefinitionLevel());
 
@@ -482,7 +478,7 @@ public class MessageColumnIO extends GroupColumnIO {
 
     @Override
     public void addDouble(double value) {
-      if (DEBUG) log("addDouble({})", value);
+      if (DEBUG) log("addDouble(" + value + ")");
       emptyField = false;
       getColumnWriter().write(value, r[currentLevel], currentColumnIO.getDefinitionLevel());
 

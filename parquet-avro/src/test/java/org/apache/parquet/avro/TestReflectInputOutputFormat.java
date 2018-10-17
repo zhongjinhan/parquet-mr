@@ -37,6 +37,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.parquet.Log;
 import org.apache.parquet.column.ColumnReader;
 import org.apache.parquet.filter.ColumnPredicates;
 import org.apache.parquet.filter.ColumnRecordFilter;
@@ -45,8 +46,6 @@ import org.apache.parquet.filter.UnboundRecordFilter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static java.lang.Thread.sleep;
 import static org.junit.Assert.assertArrayEquals;
@@ -56,7 +55,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class TestReflectInputOutputFormat {
-  private static final Logger LOG = LoggerFactory.getLogger(TestReflectInputOutputFormat.class);
+  private static final Log LOG = Log.getLog(TestReflectInputOutputFormat.class);
 
 
   public static class Service {
@@ -478,10 +477,10 @@ public class TestReflectInputOutputFormat {
   private void waitForJob(Job job) throws Exception {
     job.submit();
     while (!job.isComplete()) {
-      LOG.debug("waiting for job {}", job.getJobName());
+      LOG.debug("waiting for job " + job.getJobName());
       sleep(100);
     }
-    LOG.info("status for job {}: {}", job.getJobName(), (job.isSuccessful() ? "SUCCESS" : "FAILURE"));
+    LOG.info("status for job " + job.getJobName() + ": " + (job.isSuccessful() ? "SUCCESS" : "FAILURE"));
     if (!job.isSuccessful()) {
       throw new RuntimeException("job failed " + job.getJobName());
     }

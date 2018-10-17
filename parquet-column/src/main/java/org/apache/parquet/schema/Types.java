@@ -21,7 +21,6 @@ package org.apache.parquet.schema;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import org.apache.parquet.Preconditions;
 import org.apache.parquet.schema.ColumnOrder.ColumnOrderName;
@@ -199,7 +198,7 @@ public class Types {
     protected final Class<? extends P> returnClass;
 
     protected Type.Repetition repetition = null;
-    protected LogicalTypeAnnotation logicalTypeAnnotation = null;
+    protected OriginalType originalType = null;
     protected Type.ID id = null;
     private boolean repetitionAlreadySet = false;
 
@@ -251,32 +250,9 @@ public class Types {
      *
      * @param type an {@code OriginalType}
      * @return this builder for method chaining
-     *
-     * @deprecated use {@link #as(LogicalTypeAnnotation)} with the corresponding logical type instead
      */
-    @Deprecated
     public THIS as(OriginalType type) {
-      this.logicalTypeAnnotation = LogicalTypeAnnotation.fromOriginalType(type, null);
-      return self();
-    }
-
-    protected boolean newLogicalTypeSet;
-
-    /**
-     * Adds a type annotation ({@link LogicalTypeAnnotation}) to the type being built.
-     * <p>
-     * Type annotations are used to extend the types that parquet can store, by
-     * specifying how the primitive types should be interpreted. This keeps the
-     * set of primitive types to a minimum and reuses parquet's efficient
-     * encodings. For example, strings are stored as byte arrays (binary) with
-     * a UTF8 annotation.
-     *
-     * @param type an {@code {@link LogicalTypeAnnotation}}
-     * @return this builder for method chaining
-     */
-    public THIS as(LogicalTypeAnnotation type) {
-      this.logicalTypeAnnotation = type;
-      this.newLogicalTypeSet = true;
+      this.originalType = type;
       return self();
     }
 
@@ -327,9 +303,6 @@ public class Types {
       }
     }
 
-    protected OriginalType getOriginalType () {
-      return logicalTypeAnnotation == null ? null : logicalTypeAnnotation.toOriginalType();
-    }
   }
 
   public abstract static class
@@ -370,9 +343,6 @@ public class Types {
       return self();
     }
 
-    private boolean precisionAlreadySet;
-    private boolean scaleAlreadySet;
-
     /**
      * Adds the precision for a DECIMAL.
      * <p>
@@ -382,13 +352,9 @@ public class Types {
      *
      * @param precision an int precision value for the DECIMAL
      * @return this builder for method chaining
-     *
-     * @deprecated use {@link #as(LogicalTypeAnnotation)} with the corresponding decimal type instead
      */
-    @Deprecated
     public THIS precision(int precision) {
       this.precision = precision;
-      precisionAlreadySet = true;
       return self();
     }
 
@@ -404,13 +370,9 @@ public class Types {
      *
      * @param scale an int scale value for the DECIMAL
      * @return this builder for method chaining
-     *
-     * @deprecated use {@link #as(LogicalTypeAnnotation)} with the corresponding decimal type instead
      */
-    @Deprecated
     public THIS scale(int scale) {
       this.scale = scale;
-      scaleAlreadySet = true;
       return self();
     }
 
@@ -440,28 +402,16 @@ public class Types {
       DecimalMetadata meta = decimalMetadata();
 
       // validate type annotations and required metadata
-      if (logicalTypeAnnotation != null) {
-        logicalTypeAnnotation.accept(new LogicalTypeAnnotation.LogicalTypeAnnotationVisitor<Boolean>() {
-          @Override
-          public Optional<Boolean> visit(LogicalTypeAnnotation.StringLogicalTypeAnnotation stringLogicalType) {
-            checkBinaryPrimitiveType(stringLogicalType);
-            return Optional.of(true);
-          }
-
-          @Override
-          public Optional<Boolean> visit(LogicalTypeAnnotation.JsonLogicalTypeAnnotation jsonLogicalType) {
-            checkBinaryPrimitiveType(jsonLogicalType);
-            return Optional.of(true);
-          }
-
-          @Override
-          public Optional<Boolean> visit(LogicalTypeAnnotation.BsonLogicalTypeAnnotation bsonLogicalType) {
-            checkBinaryPrimitiveType(bsonLogicalType);
-            return Optional.of(true);
-          }
-
-          @Override
-          public Optional<Boolean> visit(LogicalTypeAnnotation.DecimalLogicalTypeAnnotation decimalLogicalType) {
+      if (originalType != null) {
+        switch (originalType) {
+          case UTF8:
+          case JSON:
+          case BSON:
+            Preconditions.checkState(
+                primitiveType == PrimitiveTypeName.BINARY,
+                originalType.toString() + " can only annotate binary fields");
+            break;
+          case DECIMAL:
             Preconditions.checkState(
                 (primitiveType == PrimitiveTypeName.INT32) ||
                 (primitiveType == PrimitiveTypeName.INT64) ||
@@ -489,95 +439,43 @@ public class Types {
                   "FIXED(" + length + ") cannot store " + meta.getPrecision() +
                   " digits (max " + maxPrecision(length) + ")");
             }
-            return Optional.of(true);
-          }
-
-          @Override
-          public Optional<Boolean> visit(LogicalTypeAnnotation.DateLogicalTypeAnnotation dateLogicalType) {
-            checkInt32PrimitiveType(dateLogicalType);
-            return Optional.of(true);
-          }
-
-          @Override
-          public Optional<Boolean> visit(LogicalTypeAnnotation.TimeLogicalTypeAnnotation timeLogicalType) {
-            LogicalTypeAnnotation.TimeUnit unit = timeLogicalType.getUnit();
-            switch (unit) {
-              case MILLIS:
-                checkInt32PrimitiveType(timeLogicalType);
-                break;
-              case MICROS:
-                checkInt64PrimitiveType(timeLogicalType);
-                break;
-              default:
-                throw new RuntimeException("Invalid time unit: " + unit);
-            }
-            return Optional.of(true);
-          }
-
-          @Override
-          public Optional<Boolean> visit(LogicalTypeAnnotation.IntLogicalTypeAnnotation intLogicalType) {
-            int bitWidth = intLogicalType.getBitWidth();
-            switch (bitWidth) {
-              case 8:
-              case 16:
-              case 32:
-                checkInt32PrimitiveType(intLogicalType);
-                break;
-              case 64:
-                checkInt64PrimitiveType(intLogicalType);
-                break;
-              default:
-                throw new RuntimeException("Invalid bit width: " + bitWidth);
-            }
-            return Optional.of(true);
-          }
-
-          @Override
-          public Optional<Boolean> visit(LogicalTypeAnnotation.TimestampLogicalTypeAnnotation timestampLogicalType) {
-            checkInt64PrimitiveType(timestampLogicalType);
-            return Optional.of(true);
-          }
-
-          @Override
-          public Optional<Boolean> visit(LogicalTypeAnnotation.IntervalLogicalTypeAnnotation intervalLogicalType) {
+            break;
+          case DATE:
+          case TIME_MILLIS:
+          case UINT_8:
+          case UINT_16:
+          case UINT_32:
+          case INT_8:
+          case INT_16:
+          case INT_32:
+            Preconditions.checkState(primitiveType == PrimitiveTypeName.INT32,
+                originalType.toString() + " can only annotate INT32");
+            break;
+          case TIME_MICROS:
+          case TIMESTAMP_MILLIS:
+          case TIMESTAMP_MICROS:
+          case UINT_64:
+          case INT_64:
+            Preconditions.checkState(primitiveType == PrimitiveTypeName.INT64,
+                originalType.toString() + " can only annotate INT64");
+            break;
+          case INTERVAL:
             Preconditions.checkState(
                 (primitiveType == PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY) &&
                 (length == 12),
                 "INTERVAL can only annotate FIXED_LEN_BYTE_ARRAY(12)");
-            return Optional.of(true);
-          }
-
-          @Override
-          public Optional<Boolean> visit(LogicalTypeAnnotation.EnumLogicalTypeAnnotation enumLogicalType) {
+            break;
+          case ENUM:
             Preconditions.checkState(
                 primitiveType == PrimitiveTypeName.BINARY,
                 "ENUM can only annotate binary fields");
-            return Optional.of(true);
-          }
-
-          private void checkBinaryPrimitiveType(LogicalTypeAnnotation logicalTypeAnnotation) {
-            Preconditions.checkState(
-                primitiveType == PrimitiveTypeName.BINARY,
-              logicalTypeAnnotation.toString() + " can only annotate binary fields");
-          }
-
-          private void checkInt32PrimitiveType(LogicalTypeAnnotation logicalTypeAnnotation) {
-            Preconditions.checkState(primitiveType == PrimitiveTypeName.INT32,
-              logicalTypeAnnotation.toString() + " can only annotate INT32");
-          }
-
-          private void checkInt64PrimitiveType(LogicalTypeAnnotation logicalTypeAnnotation) {
-            Preconditions.checkState(primitiveType == PrimitiveTypeName.INT64,
-              logicalTypeAnnotation.toString() + " can only annotate INT64");
-          }
-        }).orElseThrow(() -> new IllegalStateException(logicalTypeAnnotation + " can not be applied to a primitive type"));
+            break;
+          default:
+            throw new IllegalStateException(originalType + " can not be applied to a primitive type");
+        }
       }
 
-      if (newLogicalTypeSet) {
-        return new PrimitiveType(repetition, primitiveType, length, name, logicalTypeAnnotation, id, columnOrder);
-      } else {
-        return new PrimitiveType(repetition, primitiveType, length, name, getOriginalType(), meta, id, columnOrder);
-      }
+      return new PrimitiveType(repetition, primitiveType, length, name, originalType, meta, id, columnOrder);
     }
 
     private static long maxPrecision(int numBytes) {
@@ -590,25 +488,12 @@ public class Types {
 
     protected DecimalMetadata decimalMetadata() {
       DecimalMetadata meta = null;
-      if (logicalTypeAnnotation instanceof LogicalTypeAnnotation.DecimalLogicalTypeAnnotation) {
-        LogicalTypeAnnotation.DecimalLogicalTypeAnnotation decimalType = (LogicalTypeAnnotation.DecimalLogicalTypeAnnotation) logicalTypeAnnotation;
-        if (newLogicalTypeSet) {
-          if (scaleAlreadySet) {
-            Preconditions.checkArgument(this.scale == decimalType.getScale(),
-              "Decimal scale should match with the scale of the logical type");
-          }
-          if (precisionAlreadySet) {
-            Preconditions.checkArgument(this.precision == decimalType.getPrecision(),
-              "Decimal precision should match with the precision of the logical type");
-          }
-          scale = decimalType.getScale();
-          precision = decimalType.getPrecision();
-        }
+      if (OriginalType.DECIMAL == originalType) {
         Preconditions.checkArgument(precision > 0,
             "Invalid DECIMAL precision: " + precision);
-        Preconditions.checkArgument(this.scale >= 0,
-            "Invalid DECIMAL scale: " + this.scale);
-        Preconditions.checkArgument(this.scale <= precision,
+        Preconditions.checkArgument(scale >= 0,
+            "Invalid DECIMAL scale: " + scale);
+        Preconditions.checkArgument(scale <= precision,
             "Invalid DECIMAL scale: cannot be greater than precision");
         meta = new DecimalMetadata(precision, scale);
       }
@@ -763,11 +648,7 @@ public class Types {
 
     @Override
     protected GroupType build(String name) {
-      if (newLogicalTypeSet) {
-        return new GroupType(repetition, name, logicalTypeAnnotation, fields, id);
-      } else {
-        return new GroupType(repetition, name, getOriginalType(), fields, id);
-      }
+      return new GroupType(repetition, name, originalType, fields, id);
     }
 
     public MapBuilder<THIS> map(
@@ -1162,7 +1043,7 @@ public class Types {
 
     @Override
     protected Type build(String name) {
-      Preconditions.checkState(logicalTypeAnnotation == null,
+      Preconditions.checkState(originalType == null,
           "MAP is already a logical type and can't be changed.");
       if (keyType == null) {
         keyType = STRING_KEY;
@@ -1309,7 +1190,7 @@ public class Types {
 
     @Override
     protected Type build(String name) {
-      Preconditions.checkState(logicalTypeAnnotation == null,
+      Preconditions.checkState(originalType == null,
           "LIST is already the logical type and can't be changed");
       Preconditions.checkNotNull(elementType, "List element type");
 

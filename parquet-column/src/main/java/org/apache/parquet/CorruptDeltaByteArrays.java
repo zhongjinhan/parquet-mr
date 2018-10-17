@@ -20,11 +20,9 @@ package org.apache.parquet;
 
 import org.apache.parquet.VersionParser.ParsedVersion;
 import org.apache.parquet.column.Encoding;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CorruptDeltaByteArrays {
-  private static final Logger LOG = LoggerFactory.getLogger(CorruptStatistics.class);
+  private static final Log LOG = Log.getLog(CorruptStatistics.class);
 
   private static final SemanticVersion PARQUET_246_FIXED_VERSION =
       new SemanticVersion(1, 8, 0);
@@ -45,7 +43,7 @@ public class CorruptDeltaByteArrays {
 
     if (!version.hasSemanticVersion()) {
       LOG.warn("Requiring sequential reads because created_by did not " +
-          "contain a valid version (see PARQUET-246): {}", version.version);
+          "contain a valid version (see PARQUET-246): " + version.version);
       return true;
     }
 
@@ -63,7 +61,7 @@ public class CorruptDeltaByteArrays {
 
     if (semver.compareTo(PARQUET_246_FIXED_VERSION) < 0) {
       LOG.info("Requiring sequential reads because this file was created " +
-          "prior to {}. See PARQUET-246", PARQUET_246_FIXED_VERSION );
+          "prior to " + PARQUET_246_FIXED_VERSION + ". See PARQUET-246" );
       return true;
     }
 
@@ -77,7 +75,8 @@ public class CorruptDeltaByteArrays {
     }
 
     if (Strings.isNullOrEmpty(createdBy)) {
-      LOG.info("Requiring sequential reads because file version is empty. See PARQUET-246");
+      LOG.info("Requiring sequential reads because file version is empty. " +
+          "See PARQUET-246");
       return true;
     }
 

@@ -18,15 +18,16 @@
  */
 package org.apache.parquet.column.values.plain;
 
+import static org.apache.parquet.Log.DEBUG;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import org.apache.parquet.bytes.ByteBufferInputStream;
+import org.apache.parquet.Log;
 import org.apache.parquet.bytes.LittleEndianDataInputStream;
 import org.apache.parquet.column.values.ValuesReader;
 import org.apache.parquet.io.ParquetDecodingException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Plain encoding for float, double, int, long
@@ -35,7 +36,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 abstract public class PlainValuesReader extends ValuesReader {
-  private static final Logger LOG = LoggerFactory.getLogger(PlainValuesReader.class);
+  private static final Log LOG = Log.getLog(PlainValuesReader.class);
 
   protected LittleEndianDataInputStream in;
 
@@ -45,7 +46,7 @@ abstract public class PlainValuesReader extends ValuesReader {
    */
   @Override
   public void initFromPage(int valueCount, ByteBuffer in, int offset) throws IOException {
-    LOG.debug("init from page at offset {} for length {}", offset , (in.limit() - offset));
+    if (DEBUG) LOG.debug("init from page at offset "+ offset + " for length " + (in.limit() - offset));
     this.in = new LittleEndianDataInputStream(toInputStream(in, offset));
   }
 

@@ -38,9 +38,8 @@ import org.apache.hadoop.hive.ql.plan.PartitionDesc;
 import org.apache.hadoop.hive.ql.plan.TableScanDesc;
 import org.apache.hadoop.hive.serde2.ColumnProjectionUtils;
 import org.apache.hadoop.mapred.JobConf;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import org.apache.parquet.Log;
 
 /**
  * Hive 0.12 implementation of {@link org.apache.parquet.hive.HiveBinding HiveBinding}.
@@ -48,7 +47,7 @@ import org.slf4j.LoggerFactory;
  * <a href="http://bit.ly/1a4tcrb">ManageJobConfig</a> class.
  */
 public class Hive012Binding extends AbstractHiveBinding {
-  private static final Logger LOG = LoggerFactory.getLogger(Hive012Binding.class);
+  private static final Log LOG = Log.getLog(Hive012Binding.class);
   private final Map<String, PartitionDesc> pathToPartitionInfo =
       new LinkedHashMap<String, PartitionDesc>();
   /**

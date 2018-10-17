@@ -22,12 +22,13 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.parquet.Log;
 import org.apache.parquet.hadoop.ParquetOutputFormat;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 import org.apache.parquet.hadoop.util.ContextUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import static org.apache.parquet.Log.INFO;
+import static org.apache.parquet.Log.WARN;
 import static org.apache.parquet.hadoop.metadata.CompressionCodecName.UNCOMPRESSED;
 
 /**
@@ -38,7 +39,7 @@ import static org.apache.parquet.hadoop.metadata.CompressionCodecName.UNCOMPRESS
  * @author Tianshuo Deng
  */
 public abstract class CodecConfig {
-  private static final Logger LOG = LoggerFactory.getLogger(CodecConfig.class);
+  private static final Log LOG = Log.getLog(CodecConfig.class);
 
   /**
    * @return if a compress flag is set from hadoop
@@ -88,11 +89,11 @@ public abstract class CodecConfig {
     } else if (isHadoopCompressionSet()) { // from hadoop config
       codec = getHadoopCompressionCodec();
     } else {
-      LOG.info("Compression set to false");
+      if (INFO) LOG.info("Compression set to false");
       codec = CompressionCodecName.UNCOMPRESSED;
     }
 
-    LOG.info("Compression: {}", codec.name());
+    if (INFO) LOG.info("Compression: " + codec.name());
     return codec;
   }
 
@@ -101,13 +102,14 @@ public abstract class CodecConfig {
     try {
       // find the right codec
       Class<?> codecClass = getHadoopOutputCompressorClass(CompressionCodecName.UNCOMPRESSED.getHadoopCompressionCodecClass());
-      LOG.info("Compression set through hadoop codec: {}", codecClass.getName());
+      if (INFO) LOG.info("Compression set through hadoop codec: " + codecClass.getName());
       codec = CompressionCodecName.fromCompressionCodec(codecClass);
     } catch (CompressionCodecNotSupportedException e) {
-      LOG.warn("codec defined in hadoop config is not supported by parquet [{}] and will use UNCOMPRESSED",e.getCodecClass().getName(), e);
+      if (WARN)
+        LOG.warn("codec defined in hadoop config is not supported by parquet [" + e.getCodecClass().getName() + "] and will use UNCOMPRESSED", e);
       codec = CompressionCodecName.UNCOMPRESSED;
     } catch (IllegalArgumentException e) {
-      LOG.warn("codec class not found: {}", e.getMessage(), e);
+      if (WARN) LOG.warn("codec class not found: " + e.getMessage(), e);
       codec = CompressionCodecName.UNCOMPRESSED;
     }
     return codec;

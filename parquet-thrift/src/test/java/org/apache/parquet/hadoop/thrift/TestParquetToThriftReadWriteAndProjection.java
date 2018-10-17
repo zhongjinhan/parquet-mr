@@ -38,11 +38,10 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.transport.TIOStreamTransport;
 import org.junit.Test;
+import org.apache.parquet.Log;
 import org.apache.parquet.hadoop.api.ReadSupport;
 import org.apache.parquet.hadoop.util.ContextUtil;
 import org.apache.parquet.thrift.test.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.util.*;
@@ -51,7 +50,7 @@ import static org.junit.Assert.assertEquals;
 
 public class TestParquetToThriftReadWriteAndProjection {
 
-  private static final Logger LOG = LoggerFactory.getLogger(TestParquetToThriftReadWriteAndProjection.class);
+  private static final Log LOG = Log.getLog(TestParquetToThriftReadWriteAndProjection.class);
 
   @Test
   public void testThriftOptionalFieldsWithReadProjectionUsingParquetSchema() throws Exception {
@@ -375,7 +374,7 @@ public class TestParquetToThriftReadWriteAndProjection {
       reader.initialize(split, taskAttemptContext);
       if (reader.nextKeyValue()) {
         readValue = reader.getCurrentValue();
-        LOG.info("{}", readValue);
+        LOG.info(readValue);
       }
     }
     assertEquals(exptectedReadResult, readValue);

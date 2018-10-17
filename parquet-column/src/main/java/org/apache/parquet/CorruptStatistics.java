@@ -24,8 +24,6 @@ import org.apache.parquet.SemanticVersion.SemanticVersionParseException;
 import org.apache.parquet.VersionParser.ParsedVersion;
 import org.apache.parquet.VersionParser.VersionParseException;
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * There was a bug (PARQUET-251) that caused the statistics metadata
@@ -37,7 +35,7 @@ import org.slf4j.LoggerFactory;
 public class CorruptStatistics {
   private static final AtomicBoolean alreadyLogged = new AtomicBoolean(false);
 
-  private static final Logger LOG = LoggerFactory.getLogger(CorruptStatistics.class);
+  private static final Log LOG = Log.getLog(CorruptStatistics.class);
 
   // the version in which the bug described by jira: PARQUET-251 was fixed
   // the bug involved writing invalid binary statistics, so stats written prior to this

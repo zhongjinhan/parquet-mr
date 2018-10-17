@@ -18,26 +18,26 @@
  */
 package org.apache.parquet.column.page.mem;
 
-import org.apache.parquet.bytes.BytesInput;
-import org.apache.parquet.column.Encoding;
-import org.apache.parquet.column.page.DataPage;
-import org.apache.parquet.column.page.DataPageV1;
-import org.apache.parquet.column.page.DataPageV2;
-import org.apache.parquet.column.page.DictionaryPage;
-import org.apache.parquet.column.page.PageWriter;
-import org.apache.parquet.column.statistics.Statistics;
-import org.apache.parquet.io.ParquetEncodingException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.apache.parquet.Log.DEBUG;
+import static org.apache.parquet.bytes.BytesInput.copy;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.apache.parquet.bytes.BytesInput.copy;
+import org.apache.parquet.Log;
+import org.apache.parquet.bytes.BytesInput;
+import org.apache.parquet.column.Encoding;
+import org.apache.parquet.column.page.DataPageV1;
+import org.apache.parquet.column.page.DataPageV2;
+import org.apache.parquet.column.page.DictionaryPage;
+import org.apache.parquet.column.page.DataPage;
+import org.apache.parquet.column.page.PageWriter;
+import org.apache.parquet.column.statistics.Statistics;
+import org.apache.parquet.io.ParquetEncodingException;
 
 public class MemPageWriter implements PageWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(MemPageWriter.class);
+  private static final Log LOG = Log.getLog(MemPageWriter.class);
 
   private final List<DataPage> pages = new ArrayList<DataPage>();
   private DictionaryPage dictionaryPage;
@@ -53,7 +53,7 @@ public class MemPageWriter implements PageWriter {
     memSize += bytesInput.size();
     pages.add(new DataPageV1(BytesInput.copy(bytesInput), valueCount, (int)bytesInput.size(), statistics, rlEncoding, dlEncoding, valuesEncoding));
     totalValueCount += valueCount;
-    LOG.debug("page written for {} bytes and {} records", bytesInput.size(), valueCount);
+    if (DEBUG) LOG.debug("page written for " + bytesInput.size() + " bytes and " + valueCount + " records");
   }
 
   @Override
@@ -67,7 +67,8 @@ public class MemPageWriter implements PageWriter {
     memSize += size;
     pages.add(DataPageV2.uncompressed(rowCount, nullCount, valueCount, copy(repetitionLevels), copy(definitionLevels), dataEncoding, copy(data), statistics));
     totalValueCount += valueCount;
-    LOG.debug("page written for {} bytes and {} records", size, valueCount);
+    if (DEBUG) LOG.debug("page written for " + size + " bytes and " + valueCount + " records");
+
   }
 
   @Override
@@ -100,7 +101,7 @@ public class MemPageWriter implements PageWriter {
     }
     this.memSize += dictionaryPage.getBytes().size();
     this.dictionaryPage = dictionaryPage.copy();
-    LOG.debug("dictionary page written for {} bytes and {} records", dictionaryPage.getBytes().size(), dictionaryPage.getDictionarySize());
+    if (DEBUG) LOG.debug("dictionary page written for " + dictionaryPage.getBytes().size() + " bytes and " + dictionaryPage.getDictionarySize() + " records");
   }
 
   @Override

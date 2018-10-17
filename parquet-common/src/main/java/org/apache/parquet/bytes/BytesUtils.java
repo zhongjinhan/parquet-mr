@@ -25,8 +25,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.parquet.Log;
 
 /**
  * utility methods to deal with bytes
@@ -35,7 +34,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class BytesUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(BytesUtils.class);
+  private static final Log LOG = Log.getLog(BytesUtils.class);
 
   public static final Charset UTF8 = Charset.forName("UTF-8");
 
@@ -159,7 +158,7 @@ public class BytesUtils {
     out.write((v >>>  8) & 0xFF);
     out.write((v >>> 16) & 0xFF);
     out.write((v >>> 24) & 0xFF);
-    if (LOG.isDebugEnabled()) LOG.debug("write le int: " + v + " => "+ ((v >>>  0) & 0xFF) + " " + ((v >>>  8) & 0xFF) + " " + ((v >>> 16) & 0xFF) + " " + ((v >>> 24) & 0xFF));
+    if (Log.DEBUG) LOG.debug("write le int: " + v + " => "+ ((v >>>  0) & 0xFF) + " " + ((v >>>  8) & 0xFF) + " " + ((v >>> 16) & 0xFF) + " " + ((v >>> 24) & 0xFF));
   }
 
   /**

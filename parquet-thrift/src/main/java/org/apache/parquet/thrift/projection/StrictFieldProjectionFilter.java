@@ -21,10 +21,9 @@ package org.apache.parquet.thrift.projection;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.parquet.Log;
 import org.apache.parquet.Strings;
 import org.apache.parquet.glob.WildcardPath;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Stricter Implementation of {@link FieldProjectionFilter}.
@@ -39,7 +38,7 @@ import org.slf4j.LoggerFactory;
  * throw when {@link #assertNoUnmatchedPatterns()} is called.
  */
 public class StrictFieldProjectionFilter implements FieldProjectionFilter {
-  private static final Logger LOG = LoggerFactory.getLogger(FieldProjectionFilter.class);
+  private static final Log LOG = Log.getLog(FieldProjectionFilter.class);
   private static final String GLOB_SEPARATOR = ";";
 
   // use a list instead of a Set, so we can detect overlapping patterns and

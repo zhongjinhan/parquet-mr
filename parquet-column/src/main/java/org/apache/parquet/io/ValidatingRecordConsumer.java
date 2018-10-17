@@ -22,14 +22,13 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
 
+import org.apache.parquet.Log;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.RecordConsumer;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
 import org.apache.parquet.schema.Type.Repetition;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.*;
 
@@ -41,7 +40,8 @@ import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.*;
  *
  */
 public class ValidatingRecordConsumer extends RecordConsumer {
-  private static final Logger LOG = LoggerFactory.getLogger(ValidatingRecordConsumer.class);
+  private static final Log LOG = Log.getLog(ValidatingRecordConsumer.class);
+  private static final boolean DEBUG = Log.DEBUG;
 
   private final RecordConsumer delegate;
 
@@ -139,7 +139,7 @@ public class ValidatingRecordConsumer extends RecordConsumer {
     Type currentType = types.peek().asGroupType().getType(fields.peek());
     int c = fieldValueCount.pop() + 1;
     fieldValueCount.push(c);
-    LOG.debug("validate {} for {}",p ,currentType.getName());
+    if (DEBUG) LOG.debug("validate " + p + " for " + currentType.getName());
     switch (currentType.getRepetition()) {
       case OPTIONAL:
       case REQUIRED:
@@ -161,7 +161,7 @@ public class ValidatingRecordConsumer extends RecordConsumer {
     Type currentType = types.peek().asGroupType().getType(fields.peek());
     int c = fieldValueCount.pop() + 1;
     fieldValueCount.push(c);
-    if (LOG.isDebugEnabled()) LOG.debug("validate " + Arrays.toString(ptypes) + " for " + currentType.getName());
+    if (DEBUG) LOG.debug("validate " + Arrays.toString(ptypes) + " for " + currentType.getName());
     switch (currentType.getRepetition()) {
       case OPTIONAL:
       case REQUIRED:

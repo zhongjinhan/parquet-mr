@@ -39,16 +39,15 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.apache.parquet.Log;
 import org.apache.parquet.column.ColumnReader;
 import org.apache.parquet.filter.ColumnPredicates;
 import org.apache.parquet.filter.ColumnRecordFilter;
 import org.apache.parquet.filter.RecordFilter;
 import org.apache.parquet.filter.UnboundRecordFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TestSpecificInputOutputFormat {
-  private static final Logger LOG = LoggerFactory.getLogger(TestSpecificInputOutputFormat.class);
+  private static final Log LOG = Log.getLog(TestSpecificInputOutputFormat.class);
 
   public static Car nextRecord(int i) {
     String vin = "1VXBR12EXCP000000";
@@ -269,10 +268,10 @@ public class TestSpecificInputOutputFormat {
   private void waitForJob(Job job) throws Exception {
     job.submit();
     while (!job.isComplete()) {
-      LOG.debug("waiting for job {}", job.getJobName());
+      LOG.debug("waiting for job " + job.getJobName());
       sleep(100);
     }
-    LOG.info("status for job {}: {}", job.getJobName(), (job.isSuccessful() ? "SUCCESS" : "FAILURE"));
+    LOG.info("status for job " + job.getJobName() + ": " + (job.isSuccessful() ? "SUCCESS" : "FAILURE"));
     if (!job.isSuccessful()) {
       throw new RuntimeException("job failed " + job.getJobName());
     }

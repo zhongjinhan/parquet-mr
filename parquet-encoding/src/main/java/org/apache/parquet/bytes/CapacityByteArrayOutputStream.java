@@ -30,10 +30,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.parquet.Log;
 import org.apache.parquet.OutputStreamCloseException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Similar to a {@link ByteArrayOutputStream}, but uses a different strategy for growing that does not involve copying.
@@ -56,7 +54,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class CapacityByteArrayOutputStream extends OutputStream {
-  private static final Logger LOG = LoggerFactory.getLogger(CapacityByteArrayOutputStream.class);
+  private static final Log LOG = Log.getLog(CapacityByteArrayOutputStream.class);
   private static final ByteBuffer EMPTY_SLAB = ByteBuffer.wrap(new byte[0]);
 
   private int initialSlabSize;
@@ -169,11 +167,11 @@ public class CapacityByteArrayOutputStream extends OutputStream {
     }
 
     if (nextSlabSize < minimumSize) {
-      LOG.debug("slab size {} too small for value of size {}. Bumping up slab size", nextSlabSize, minimumSize);
+      if (Log.DEBUG) LOG.debug(format("slab size %,d too small for value of size %,d. Bumping up slab size", nextSlabSize, minimumSize));
       nextSlabSize = minimumSize;
     }
 
-    LOG.debug("used {} slabs, adding new slab of size {}", slabs.size(), nextSlabSize);
+    if (Log.DEBUG) LOG.debug(format("used %d slabs, adding new slab of size %d", slabs.size(), nextSlabSize));
 
     this.currentSlab = allocator.allocate(nextSlabSize);
     this.slabs.add(currentSlab);
@@ -267,7 +265,7 @@ public class CapacityByteArrayOutputStream extends OutputStream {
     // readjust slab size.
     // 7 = 2^3 - 1 so that doubling the initial size 3 times will get to the same size
     this.initialSlabSize = max(bytesUsed / 7, initialSlabSize);
-    LOG.debug("initial slab of size {}", initialSlabSize);
+    if (Log.DEBUG) LOG.debug(String.format("initial slab of size %d", initialSlabSize));
     for (ByteBuffer slab : slabs) {
       allocator.release(slab);
     }
