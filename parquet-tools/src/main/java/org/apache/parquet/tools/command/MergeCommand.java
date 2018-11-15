@@ -24,7 +24,6 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.hadoop.util.HiddenFileFilter;
-import org.slf4j.Logger;
 import org.apache.parquet.hadoop.ParquetFileWriter;
 import org.apache.parquet.hadoop.metadata.FileMetaData;
 import org.apache.parquet.tools.Main;
