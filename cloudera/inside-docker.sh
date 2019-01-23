@@ -16,7 +16,7 @@ if [[ ! -d "$PROTOC_HOME" ]]; then
     exit 1
 fi
 
-CURRENT_BRANCH=cdh6.1.x
+CURRENT_BRANCH=cdh6.1.1
 
 # we need to re-run setup inside the docker container to get mvn-gbn script.
 SETUP_FILE="$(mktemp)"
