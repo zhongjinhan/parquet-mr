@@ -25,7 +25,7 @@ function cleanup_setup_file {
 }
 trap cleanup_setup_file EXIT
 
-curl http://github.mtv.cloudera.com/raw/cdh/cdh/${CURRENT_BRANCH}/tools/gerrit-unittest-setup.sh -o "$SETUP_FILE"
+curl https://github.mtv.cloudera.com/raw/cdh/cdh/${CURRENT_BRANCH}/tools/gerrit-unittest-setup.sh -o "$SETUP_FILE"
 source "$SETUP_FILE"
 
 # mvn-gbn should now be on our path
