@@ -32,22 +32,15 @@ import org.apache.parquet.Preconditions;
  * entire input in setInput and compresses it as one compressed block.
  */
 public class SnappyCompressor implements Compressor {
-  private static final int initialBufferSize = 64 * 1024 * 1024;
-
   // Buffer for compressed output. This buffer grows as necessary.
-  private ByteBuffer outputBuffer = ByteBuffer.allocateDirect(initialBufferSize);
+  private ByteBuffer outputBuffer = ByteBuffer.allocateDirect(0);
 
   // Buffer for uncompressed input. This buffer grows as necessary.
-  private ByteBuffer inputBuffer = ByteBuffer.allocateDirect(initialBufferSize);
+  private ByteBuffer inputBuffer = ByteBuffer.allocateDirect(0);
 
   private long bytesRead = 0L;
   private long bytesWritten = 0L;
   private boolean finishCalled = false;
-
-  public SnappyCompressor() {
-    inputBuffer.limit(0);
-    outputBuffer.limit(0);
-  }
 
   /**
    * Fills specified buffer with compressed data. Returns actual number
@@ -73,9 +66,7 @@ public class SnappyCompressor implements Compressor {
       // There is uncompressed input, compress it now
       int maxOutputSize = Snappy.maxCompressedLength(inputBuffer.position());
       if (maxOutputSize > outputBuffer.capacity()) {
-        ByteBuffer oldBuffer = outputBuffer;
         outputBuffer = ByteBuffer.allocateDirect(maxOutputSize);
-        CleanUtil.clean(oldBuffer);
       }
       // Reset the previous outputBuffer
       outputBuffer.clear();
@@ -106,9 +97,7 @@ public class SnappyCompressor implements Compressor {
       ByteBuffer tmp = ByteBuffer.allocateDirect(inputBuffer.position() + len);
       inputBuffer.rewind();
       tmp.put(inputBuffer);
-      ByteBuffer oldBuffer = inputBuffer;
       inputBuffer = tmp;
-      CleanUtil.clean(oldBuffer);
     } else {
       inputBuffer.limit(inputBuffer.position() + len);
     }
@@ -157,18 +146,6 @@ public class SnappyCompressor implements Compressor {
 
   @Override
   public synchronized void reset() {
-    if (inputBuffer.capacity() > initialBufferSize) {
-      ByteBuffer oldBuffer = inputBuffer;
-      inputBuffer = ByteBuffer.allocateDirect(initialBufferSize);
-      CleanUtil.clean(oldBuffer);
-    }
-
-    if (outputBuffer.capacity() > initialBufferSize) {
-      ByteBuffer oldBuffer = outputBuffer;
-      outputBuffer = ByteBuffer.allocateDirect(initialBufferSize);
-      CleanUtil.clean(oldBuffer);
-    }
-
     finishCalled = false;
     bytesRead = bytesWritten = 0;
     inputBuffer.rewind();
