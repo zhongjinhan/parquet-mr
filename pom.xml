@@ -129,6 +129,7 @@
     <protobuf.version>${cdh.protobuf.version}</protobuf.version>
     <protoc.executable>protoc</protoc.executable>
     <thrift.version>${cdh.thrift.version}</thrift.version>
+    <thrift.exec.version>${cdh.thrift.executable.version}</thrift.exec.version>
     <thrift-maven-plugin.version>0.10.0</thrift-maven-plugin.version>
     <fastutil.version>${cdh.fastutil.version}</fastutil.version>
     <semver.api.version>0.9.33</semver.api.version>
@@ -507,8 +508,8 @@
             <exclude>.travis.yml</exclude>
             <exclude>licenses/**</exclude>
             <exclude>protobuf_install/**</exclude>
-            <exclude>thrift-${cdh.thrift.version}/**</exclude>
-            <exclude>thrift-${cdh.thrift.version}.tar.gz</exclude>
+            <exclude>thrift-${thrift.version}/**</exclude>
+            <exclude>thrift-${thrift.version}.tar.gz</exclude>
             <exclude>**/dependency-reduced-pom.xml</exclude>
             <exclude>cloudera/**</exclude>
           </excludes>
