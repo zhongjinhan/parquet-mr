@@ -191,9 +191,9 @@
                   <workingDirectory>${basedir}</workingDirectory>
                   <arguments>
                     <argument>-c</argument>
-                    <argument>${thrift.executable} -version | fgrep 'Thrift version ${thrift.version}' &amp;&amp; exit 0;
+                    <argument>${thrift.executable} -version | fgrep 'Thrift version ${thrift.exec.version}' &amp;&amp; exit 0;
                       echo "=================================================================================";
-                      echo "========== [FATAL] Build is configured to require Thrift version ${thrift.version} ==========";
+                      echo "========== [FATAL] Build is configured to require Thrift version ${thrift.exec.version} ==========";
                       echo -n "========== Currently installed: ";
                       ${thrift.executable} -version;
                       echo "=================================================================================";
