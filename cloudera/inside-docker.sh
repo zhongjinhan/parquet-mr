@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-. /opt/toolchain/toolchain.sh
 export THRIFT_VERSION="0.9.3"
 export THRIFT_HOME="/opt/toolchain/thrift-${THRIFT_VERSION}"
 export PROTOC_HOME="/opt/toolchain/protobuf-2.5.0"
@@ -16,6 +15,9 @@ if [[ ! -d "$PROTOC_HOME" ]]; then
     exit 1
 fi
 
+# Somehow, mvn is not on the path by default
+export PATH="$MAVEN3_HOME/bin:$PATH"
+
 CURRENT_BRANCH=cdh6.x
 
 # we need to re-run setup inside the docker container to get mvn-gbn script.
@@ -25,8 +27,14 @@ function cleanup_setup_file {
 }
 trap cleanup_setup_file EXIT
 
+function die() {
+    echo "$@" >&2
+    exit 1
+}
+
 curl https://github.mtv.cloudera.com/raw/cdh/cdh/${CURRENT_BRANCH}/tools/gerrit-unittest-setup.sh -o "$SETUP_FILE"
 source "$SETUP_FILE"
 
 # mvn-gbn should now be on our path
-mvn-gbn clean test --fail-at-end
+mvn-gbn clean verify --fail-at-end || die "Tests failed with java8 ($JAVA_HOME)"
+mvn-gbn verify --fail-at-end -Djvm="$OPENJDK_11_HOME/bin/java" || die "Tests failed with java11 ($OPENJDK_11_HOME)"

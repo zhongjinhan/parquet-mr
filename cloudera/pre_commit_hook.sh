@@ -19,6 +19,6 @@
 set -e
 
 # invoke docker with an image that has the proper thrift and protoc installed:
-docker run -v "$(pwd):/mnt" -w /mnt docker-registry.infra.cloudera.com/cauldron/ubuntu1604:1505254507 bash -c "adduser --uid $(id -u) --gecos '' --disabled-password me; su me -c '/mnt/cloudera/inside-docker.sh'"
+docker run -v "$(pwd):/mnt" -w /mnt docker-registry.infra.cloudera.com/parquet/pre-commit bash -c "adduser --uid $(id -u) --gecos '' --disabled-password me; su me -c '/mnt/cloudera/inside-docker.sh'"
 
 
