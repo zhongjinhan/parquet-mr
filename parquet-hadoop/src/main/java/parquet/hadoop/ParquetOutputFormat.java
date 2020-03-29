@@ -114,9 +114,14 @@ public class ParquetOutputFormat<T> extends FileOutputFormat<Void, T> {
   public static final String MEMORY_POOL_RATIO    = "parquet.memory.pool.ratio";
   public static final String MIN_MEMORY_ALLOCATION = "parquet.memory.min.chunk.size";
   public static final String MAX_PADDING_BYTES    = "parquet.writer.max-padding";
+  public static final String MAX_RECORD_CHECK     =  "parquet.max.record.check";
+  public static final String MIN_RECORD_CHECK     =  "parquet.min.record.check";
+
 
   // default to no padding for now
   private static final int DEFAULT_MAX_PADDING_SIZE = 8*1024*1024; // 8MB
+  private static final int DEFAULT_MAX_RECORD_CHECK = 10000;
+  private static final int DEFAULT_MIN_RECORD_CHECK = 100;
 
   public static void setWriteSupportClass(Job job,  Class<?> writeSupportClass) {
     getConfiguration(job).set(WRITE_SUPPORT_CLASS, writeSupportClass.getName());
@@ -245,7 +250,13 @@ public class ParquetOutputFormat<T> extends FileOutputFormat<Void, T> {
     // default to no padding, 0% of the row group size
     return conf.getInt(MAX_PADDING_BYTES, DEFAULT_MAX_PADDING_SIZE);
   }
+  private static int getMaxRecordCheck(Configuration conf) {
+    return conf.getInt(MAX_RECORD_CHECK, DEFAULT_MAX_RECORD_CHECK);
+  }
 
+  private static int getMinRecordCheck(Configuration conf) {
+    return conf.getInt(MIN_RECORD_CHECK, DEFAULT_MIN_RECORD_CHECK);
+  }
 
   private WriteSupport<T> writeSupport;
   private ParquetOutputCommitter committer;
@@ -307,6 +318,11 @@ public class ParquetOutputFormat<T> extends FileOutputFormat<Void, T> {
     int maxPaddingSize = getMaxPaddingSize(conf);
     if (INFO) LOG.info("Maximum row group padding size is " + maxPaddingSize + " bytes");
 
+    int maxRecordCountForCheck = getMaxRecordCheck(conf);
+    if (INFO) LOG.info("Maximum record count for check is " + maxRecordCountForCheck);
+    int minRecordCountForCheck = getMinRecordCheck(conf);
+    if (INFO) LOG.info("Minimum record count for check is " + minRecordCountForCheck);
+
     WriteContext init = writeSupport.init(conf);
     ParquetFileWriter w = new ParquetFileWriter(
         conf, init.getSchema(), file, Mode.CREATE, blockSize, maxPaddingSize);
@@ -334,7 +350,9 @@ public class ParquetOutputFormat<T> extends FileOutputFormat<Void, T> {
         enableDictionary,
         validating,
         writerVersion,
-        memoryManager);
+        memoryManager,
+        maxRecordCountForCheck,
+        minRecordCountForCheck);
   }
 
   /**

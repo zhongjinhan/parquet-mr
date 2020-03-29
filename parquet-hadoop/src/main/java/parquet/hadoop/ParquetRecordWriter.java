@@ -96,10 +96,12 @@ public class ParquetRecordWriter<T> extends RecordWriter<Void, T> {
       boolean enableDictionary,
       boolean validating,
       WriterVersion writerVersion,
-      MemoryManager memoryManager) {
+      MemoryManager memoryManager,
+      int maxRecordCountForCheck,
+      int minRecordCountForCheck) {
     internalWriter = new InternalParquetRecordWriter<T>(w, writeSupport, schema,
         extraMetaData, blockSize, pageSize, compressor, dictionaryPageSize, enableDictionary,
-        validating, writerVersion);
+        validating, writerVersion, maxRecordCountForCheck, minRecordCountForCheck);
     this.memoryManager = checkNotNull(memoryManager, "memoryManager");
     memoryManager.addWriter(internalWriter, blockSize);
   }

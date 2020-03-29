@@ -58,6 +58,8 @@ class InternalParquetRecordWriter<T> {
   private long recordCount = 0;
   private long recordCountForNextMemCheck = MINIMUM_RECORD_COUNT_FOR_CHECK;
   private long lastRowGroupEndPos = 0;
+  private int maxRecordCountForCheck = MAXIMUM_RECORD_COUNT_FOR_CHECK;
+  private int minRecordCountForCheck = MINIMUM_RECORD_COUNT_FOR_CHECK;
 
   private ColumnWriteStore columnStore;
   private ColumnChunkPageWriteStore pageStore;
@@ -97,6 +99,35 @@ class InternalParquetRecordWriter<T> {
     initStore();
   }
 
+  public InternalParquetRecordWriter(
+          ParquetFileWriter parquetFileWriter,
+          WriteSupport<T> writeSupport,
+          MessageType schema,
+          Map<String, String> extraMetaData,
+          long rowGroupSize,
+          int pageSize,
+          BytesCompressor compressor,
+          int dictionaryPageSize,
+          boolean enableDictionary,
+          boolean validating,
+          WriterVersion writerVersion,
+          int maxRecordCountForCheck,
+          int minRecordCountForCheck){
+
+    this(parquetFileWriter,
+            writeSupport,
+            schema,
+            extraMetaData,
+            rowGroupSize,
+            pageSize,
+            compressor,
+            dictionaryPageSize,
+            enableDictionary,
+            validating,
+            writerVersion);
+    this.maxRecordCountForCheck = maxRecordCountForCheck;
+    this.minRecordCountForCheck = minRecordCountForCheck;
+  }
   private void initStore() {
     pageStore = new ColumnChunkPageWriteStore(compressor, schema, pageSize);
     columnStore = parquetProperties.newColumnWriteStore(
@@ -135,14 +166,15 @@ class InternalParquetRecordWriter<T> {
         LOG.info(format("mem size %,d > %,d: flushing %,d records to disk.", memSize, nextRowGroupSize, recordCount));
         flushRowGroupToStore();
         initStore();
-        recordCountForNextMemCheck = min(max(MINIMUM_RECORD_COUNT_FOR_CHECK, recordCount / 2), MAXIMUM_RECORD_COUNT_FOR_CHECK);
+        recordCountForNextMemCheck = min(max(minRecordCountForCheck, recordCount / 2), maxRecordCountForCheck);
         this.lastRowGroupEndPos = parquetFileWriter.getPos();
       } else {
         recordCountForNextMemCheck = min(
-            max(MINIMUM_RECORD_COUNT_FOR_CHECK, (recordCount + (long)(nextRowGroupSize / ((float)recordSize))) / 2), // will check halfway
-            recordCount + MAXIMUM_RECORD_COUNT_FOR_CHECK // will not look more than max records ahead
+            max(minRecordCountForCheck, (recordCount + (long)(nextRowGroupSize / ((float)recordSize))) / 2), // will check halfway
+            recordCount + maxRecordCountForCheck // will not look more than max records ahead
             );
-        if (DEBUG) LOG.debug(format("Checked mem at %,d will check again at: %,d ", recordCount, recordCountForNextMemCheck));
+        //if (DEBUG) LOG.debug(format("Checked mem at %,d will check again at: %,d ", recordCount, recordCountForNextMemCheck));
+        LOG.info(format("Checked mem at %,d will check again at: %,d , current memSize: %,d", recordCount, recordCountForNextMemCheck, memSize));
       }
     }
   }
